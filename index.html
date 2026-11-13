@@ -27,36 +27,23 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 .stat strong{font-size:22px}
 
 #speech{
- position:fixed;z-index:3;top:17%;left:50%;
+ position:fixed;z-index:4;top:15%;left:50%;
  transform:translateX(-50%);
  width:max-content;max-width:83%;
  background:#fff9eb;color:#29352f;
- border:3px solid #fff;
- border-radius:22px;padding:12px 19px;
- font-weight:900;font-size:clamp(14px,4vw,18px);
+ border:3px solid #fff;border-radius:22px;
+ padding:12px 19px;font-weight:900;
+ font-size:clamp(14px,4vw,18px);
  text-align:center;line-height:1.45;
  box-shadow:0 5px 0 #d8c7a9,0 8px 16px #233b3540;
- pointer-events:none;
+ pointer-events:none
 }
 #speech:after{
  content:"";position:absolute;left:24%;bottom:-17px;
  border-width:17px 12px 0;border-style:solid;
- border-color:#fff9eb transparent transparent;
+ border-color:#fff9eb transparent transparent
 }
 #speech.hidden{display:none}
-
-#itemCard{
- position:fixed;z-index:3;top:29%;right:12px;
- min-width:76px;padding:9px 12px;
- background:#fff5dc;border:2px solid #e7cda3;
- border-radius:14px;text-align:center;
- color:#554536;font-weight:900;
- box-shadow:0 4px 10px #263b3530;
- pointer-events:none;
-}
-#itemCard small{display:block;color:#b16c40;font-size:10px;margin-bottom:3px}
-#itemCard strong{font-size:15px}
-#itemCard.hidden{display:none}
 
 #hint{
  position:fixed;bottom:22px;left:0;right:0;
@@ -71,8 +58,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 .panel{
  width:min(390px,100%);background:#fff8e9;color:#293a32;
  border-radius:25px;padding:27px 23px;text-align:center;
- box-shadow:0 15px 45px #243b3c66;
- border:3px solid #fff
+ box-shadow:0 15px 45px #243b3c66;border:3px solid #fff
 }
 .panel h1{font-size:clamp(27px,7vw,38px);margin:0 0 12px}
 .panel p{line-height:1.7}
@@ -84,11 +70,17 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
  font-size:14px;font-weight:900;margin:17px 0;
  box-shadow:inset 0 -3px #e7d5ad
 }
+.result-score{
+ margin:20px 0;padding:17px;border-radius:16px;
+ background:#f4ead7;font-size:15px;font-weight:800
+}
+.result-score strong{
+ display:block;margin-top:5px;font-size:34px;color:#b85d36
+}
 button{
  background:#e9a64c;color:#34271c;border:0;
  border-radius:15px;padding:14px 32px;
- font-size:17px;font-weight:900;
- box-shadow:0 4px 0 #bd7e36
+ font-size:17px;font-weight:900;box-shadow:0 4px 0 #bd7e36
 }
 button:active{transform:translateY(3px);box-shadow:0 1px 0 #bd7e36}
 .hidden{display:none!important}
@@ -105,11 +97,7 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #bd7e36}
  </div>
 </div>
 
-<div id="speech" class="hidden">쉿! 조용히 움직여!</div>
-<div id="itemCard" class="hidden">
- <small>이번 물건</small>
- <strong id="itemName">지갑</strong>
-</div>
+<div id="speech" class="hidden"></div>
 <div id="hint" class="hidden">아래로 드래그: 받기　/　위로 드래그: 쳐내기</div>
 
 <div class="overlay" id="start">
@@ -131,16 +119,24 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #bd7e36}
 
 <div class="overlay hidden" id="end">
  <div class="panel">
-  <div class="speech-preview">“지금 뭐 하시는 거예요?”</div>
+  <div class="speech-preview">“지금 뭐 하시는 거예요!”</div>
   <h1>작전 발각!</h1>
   <p>자경이에게 들켰습니다!</p>
-  <div style="font-size:26px;font-weight:900;margin:20px 0" id="result">훔친 물건 0개</div>
+  <div class="result-score">
+   훔친 물건
+   <strong id="result">0개</strong>
+  </div>
   <button id="again">다시 도전하기</button>
  </div>
 </div>
 
 <script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+{
+ "imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+ }
+}
 </script>
 
 <script type="module">
@@ -236,7 +232,6 @@ road.rotation.x=-Math.PI/2;
 road.position.set(0,-.07,-12);
 scene.add(road);
 
-// 자갈
 for(let i=0;i<55;i++){
  const s=.035+Math.random()*.09;
  const stone=new THREE.Mesh(
@@ -248,7 +243,6 @@ for(let i=0;i<55;i++){
  scene.add(stone);
 }
 
-// 길가 풀
 for(let i=0;i<65;i++){
  const side=Math.random()>.5?1:-1;
  const x=side*(4+Math.random()*7);
@@ -257,7 +251,6 @@ for(let i=0;i<65;i++){
  if(i%6===0)sphere(scene,0xf0d37a,[x,.43,z],[.12,.12,.12]);
 }
 
-// 울타리
 for(const side of [-1,1]){
  for(let i=0;i<10;i++){
   roundedBox(scene,0x806044,[side*5.2,.55,-27+i*3],[.16,1.1,.16],.04);
@@ -267,13 +260,11 @@ for(const side of [-1,1]){
  }
 }
 
-// 언덕
 for(let i=0;i<12;i++){
  const h=2+Math.random()*3;
  sphere(scene,0x83ad78,[-22+i*4,h*.25,-27],[7,h*2,4]);
 }
 
-// 구름
 for(let i=0;i<8;i++){
  const cloud=new THREE.Group();
  sphere(cloud,0xfff9ed,[0,0,0],[3,.9,1.4]);
@@ -285,7 +276,6 @@ for(let i=0;i<8;i++){
 
 // ========================================
 // 자경이
-// 둥근 얼굴 + 두 덩어리 머리 + 안경
 // ========================================
 const victim=new THREE.Group();
 scene.add(victim);
@@ -309,12 +299,10 @@ for(const side of [-1,1]){
  torso.add(arm);
 
  capsule(arm,0xf0eee5,[side*.05,-.4,0],.18,.72,[0,0,-side*.04]);
-
- // 손만 피부색
  roundedBox(arm,0xe8b18f,[side*.05,-.91,.02],[.23,.22,.22],.09);
 }
 
-// 앞면 멜빵: V자 없이 일자 두 줄
+// 앞면 멜빵: 일자 두 줄
 const frontStraps=new THREE.Group();
 frontStraps.position.z=.32;
 torso.add(frontStraps);
@@ -338,16 +326,12 @@ const head=new THREE.Group();
 head.position.set(0,1.08,0);
 torso.add(head);
 
-// 얼굴은 박스가 아니라 둥근 구형
 sphere(head,0xe8b18f,[0,0,0],[.94,1.0,.85]);
 
-// 머리카락 1: 뒤통수
+// 머리카락 두 덩어리
 sphere(head,0x211d20,[0,.16,-.13],[.99,.68,.91]);
-
-// 머리카락 2: 윗머리
 sphere(head,0x211d20,[0,.45,-.05],[.87,.34,.78]);
 
-// 옆머리
 for(const side of [-1,1]){
  sphere(head,0x211d20,[side*.43,.05,.12],[.15,.36,.19]);
  sphere(head,0xe8b18f,[side*.47,-.04,.02],[.15,.21,.14]);
@@ -391,8 +375,7 @@ roundedBox(book,0xe9d9b9,[0,0,.06],[.33,.5,.025],.02);
 roundedBox(book,0x70432f,[-.12,0,.08],[.03,.48,.02],.01);
 
 // ========================================
-// 양쪽 팔
-// 화면 양쪽에서 중앙으로 들어옴
+// 양쪽 팔과 손
 // ========================================
 function makeArm(color,radius){
  const m=new THREE.Mesh(
@@ -418,34 +401,33 @@ function positionArm(mesh,start,end){
  mesh.scale.set(1,len,1);
 }
 
-const leftArm=makeArm(0x59734e,.20);
-const rightArm=makeArm(0x84968b,.20);
+const leftArm=makeArm(0xeee9df,.28);
+const rightArm=makeArm(0xeee9df,.28);
 
 const leftHand=new THREE.Group();
 const rightHand=new THREE.Group();
 scene.add(leftHand,rightHand);
 
-sphere(leftHand,0xf1c19d,[0,0,0],[.28,.23,.23]);
-sphere(rightHand,0xf1c19d,[0,0,0],[.28,.23,.23]);
+sphere(leftHand,0xf0bd9b,[0,0,0],[.34,.28,.29]);
+sphere(rightHand,0xf0bd9b,[0,0,0],[.34,.28,.29]);
 
 const leftStart=[-1.8,2.75,3.35];
 const rightStart=[1.8,2.75,3.35];
 
-let leftEnd=[-.48,1.5,3.4];
-let rightEnd=[.48,1.5,3.4];
-
-const baseLeftEnd=[-.48,1.5,3.4];
-const baseRightEnd=[.48,1.5,3.4];
+const leftEnd=[-.58,1.5,3.4];
+const rightBaseEnd=[.58,1.5,3.4];
+let rightHandY=0;
 
 // ========================================
 // 아이템
 // ========================================
 const itemHolder=new THREE.Group();
 scene.add(itemHolder);
+itemHolder.position.set(0,1.5,3.65);
 
 const itemNames=[
  '지갑','돈','담뱃갑','모자','라이터',
- '돌','벽돌','막대기','수배 전단지','옥수수'
+ '돌','벽돌','나뭇가지','수배 전단지','옥수수'
 ];
 
 const catchItems=new Set([
@@ -477,7 +459,7 @@ const phrases={
  '라이터':['반짝이는 게 보인다!','조심해서 받아!'],
  '돌':['이건 위험해! 쳐내!','받으면 안 돼!'],
  '벽돌':['벽돌이다! 피해야 해!','위로 쳐내!'],
- '막대기':['막대기 조심!','이건 받아선 안 돼!'],
+ '나뭇가지':['나뭇가지 조심!','이건 받아선 안 돼!'],
  '수배 전단지':['어? 수배 전단지다!','이건 얼른 쳐내!'],
  '옥수수':['옥수수까지 나온다고?','이것도 피해야 해!']
 };
@@ -526,31 +508,20 @@ function makeItem(name){
  else if(name==='벽돌'){
   roundedBox(g,0xa64e3d,[0,0,0],[.62,.35,.3],.035);
  }
- else if(name==='막대기'){
-  capsule(g,0x79532f,[0,0,0],.075,.85,[0,0,Math.PI/2]);
+ else if(name==='나뭇가지'){
+  capsule(g,0x79532f,[0,0,0],.065,.72,[0,0,Math.PI/2]);
+  capsule(g,0x79532f,[.18,.11,0],.045,.3,[0,0,.7]);
+  capsule(g,0x79532f,[-.2,-.08,0],.04,.24,[0,0,-.75]);
  }
  else if(name==='옥수수'){
-  // 옥수수 알맹이 몸통
+  // 노란 몸통 하나
   sphere(g,0xe9c442,[0,0,0],[.23,.53,.22]);
 
-  // 촘촘한 노란 알갱이
-  for(let row=0;row<8;row++){
-   const y=-.38+row*.105;
-   for(let col=0;col<5;col++){
-    const angle=col*Math.PI*2/5;
-    const x=Math.sin(angle)*.19;
-    const z=Math.cos(angle)*.17;
-    sphere(g,col%2?0xf6d65b:0xe9bd36,[x,y,z],[.06,.07,.05]);
-   }
-  }
-
-  // 초록색 껍질잎
-  capsule(g,0x4f8745,[-.13,-.43,.02],.075,.48,[0,0,-.48]);
-  capsule(g,0x65974b,[.13,-.43,.02],.075,.48,[0,0,.48]);
-  capsule(g,0x39783d,[0,-.48,.1],.065,.42,[0,0,.05]);
+  // 초록 껍질 두 장
+  capsule(g,0x4f8745,[-.13,-.24,.02],.12,.48,[0,0,-.48]);
+  capsule(g,0x65974b,[.13,-.24,.02],.12,.48,[0,0,.48]);
  }
  else if(name==='수배 전단지'){
-  // 빨간색 띠 제거. 흰 종이 + 검은 선 그림
   roundedBox(g,0xf3e8d0,[0,0,0],[.62,.48,.035],.015);
 
   // 얼굴 윤곽
@@ -566,11 +537,23 @@ function makeItem(name){
    sphere(g,0x302c29,[x,.015,.05],[.025,.025,.012]);
   }
 
-  // 코와 입
-  roundedBox(g,0x302c29,[0,-.025,.055],[.018,.07,.012],.005);
-  roundedBox(g,0x302c29,[0,-.09,.055],[.09,.015,.012],.005);
+  // W자 입, 코는 생략
+  const mouthGeometry=new THREE.BufferGeometry();
+  mouthGeometry.setAttribute(
+   'position',
+   new THREE.Float32BufferAttribute([
+    -.105,-.065,.055,
+    -.052,-.105,.055,
+    0,-.065,.055,
+    .052,-.105,.055,
+    .105,-.065,.055
+   ],3)
+  );
+  g.add(new THREE.Line(
+   mouthGeometry,
+   new THREE.LineBasicMaterial({color:0x302c29})
+  ));
 
-  // 아래쪽 글자 느낌의 검은 선
   for(let i=0;i<2;i++){
    roundedBox(g,0x49423b,[0,-.19-i*.035,.03],[.34-i*.05,.012,.01],.004);
   }
@@ -618,15 +601,10 @@ function spawn(){
  currentItem=makeItem(currentName);
  itemHolder.add(currentItem);
  itemTimer=0;
-
  itemHolder.position.set(0,1.5,3.65);
-
- $('itemName').textContent=currentName;
- $('itemCard').classList.remove('hidden');
 
  const list=phrases[currentName];
  showSpeech(list[Math.floor(Math.random()*list.length)]);
-
  sound(520,.08);
 }
 
@@ -635,19 +613,22 @@ function clearItem(){
   itemHolder.remove(currentItem);
   currentItem=null;
  }
- $('itemCard').classList.add('hidden');
 }
 
 function finish(){
  if(!active)return;
+
  active=false;
  clearItem();
+
  turning=true;
  turnProgress=0;
  shake=.45;
- showSpeech('지금 뭐 하시는 거예요?');
+
+ angryBrows.visible=true;
+ $('result').textContent=`${score}개`;
+
  sound(110,.4);
- $('result').textContent=`훔친 물건 ${score}개`;
 }
 
 function judge(direction){
@@ -680,7 +661,7 @@ function judge(direction){
 }
 
 // ========================================
-// 터치 조작
+// 터치 조작: 팔은 고정, 오른손만 움직임
 // ========================================
 renderer.domElement.addEventListener('pointerdown',e=>{
  if(!active||!currentItem)return;
@@ -691,28 +672,24 @@ renderer.domElement.addEventListener('pointerdown',e=>{
 
 renderer.domElement.addEventListener('pointermove',e=>{
  if(!dragging)return;
- dragY=e.clientY-startY;
 
+ dragY=e.clientY-startY;
  const v=THREE.MathUtils.clamp(dragY/150,-1,1);
- rightEnd=[
-  .48,
-  1.5-v*.45,
-  3.4
- ];
+ rightHandY=-v*.38;
 });
 
 window.addEventListener('pointerup',()=>{
  if(!dragging)return;
- dragging=false;
 
+ dragging=false;
  if(Math.abs(dragY)>15){
   judge(dragY>0?'down':'up');
  }
- rightEnd=[...baseRightEnd];
+ rightHandY=0;
 });
 
 // ========================================
-// 시작
+// 시작 및 재시작
 // ========================================
 function startGame(){
  active=true;
@@ -722,14 +699,16 @@ function startGame(){
  spawnTimer=.3;
  lastName='';
  repeat=0;
+
  turning=false;
  turnProgress=0;
+ shake=0;
 
  victim.rotation.y=Math.PI;
  angryBrows.visible=false;
 
- leftEnd=[...baseLeftEnd];
- rightEnd=[...baseRightEnd];
+ rightHandY=0;
+ dragging=false;
 
  clearItem();
 
@@ -738,7 +717,7 @@ function startGame(){
  $('start').classList.add('hidden');
  $('end').classList.add('hidden');
  $('hint').classList.remove('hidden');
- $('speech').classList.remove('hidden');
+
  showSpeech('쉿! 자경이한테 들키면 안 돼!');
 }
 
@@ -772,29 +751,35 @@ function animate(now){
   }
  }
 
- // 양팔을 중앙 방향으로 연결
+ // 양팔은 고정된 위치에서 중앙으로 뻗음
  positionArm(leftArm,leftStart,leftEnd);
- positionArm(rightArm,rightStart,rightEnd);
+ positionArm(rightArm,rightStart,rightBaseEnd);
 
+ // 손만 이동
  leftHand.position.set(...leftEnd);
- rightHand.position.set(...rightEnd);
+ rightHand.position.set(
+  rightBaseEnd[0],
+  rightBaseEnd[1]+rightHandY,
+  rightBaseEnd[2]
+ );
 
- // 손 사이 중앙에 아이템 위치
- if(currentItem){
-  itemHolder.position.x=0;
-  itemHolder.position.y=1.5;
-  itemHolder.position.z=3.65;
- }
+ // 물건은 항상 중앙
+ itemHolder.position.set(0,1.5,3.65);
 
- // 게임오버 회전
+ // 게임오버: 자경이가 돌아본 뒤 종료 팝업
  if(turning){
   turnProgress=Math.min(1,turnProgress+dt*1.8);
   const eased=1-Math.pow(1-turnProgress,3);
   victim.rotation.y=Math.PI*(1-eased);
-  angryBrows.visible=true;
 
   if(turnProgress>=1){
    turning=false;
+   victim.rotation.y=0;
+
+   // 자경이의 머리 위 말풍선
+   showSpeech('지금 뭐 하시는 거예요!');
+
+   // 최종 점수 팝업
    $('end').classList.remove('hidden');
    $('hint').classList.add('hidden');
   }
