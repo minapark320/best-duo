@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>받아? 쳐내! | 3D Mini Game</title>
+<style>
+:root{color-scheme:dark;--ink:#f8f3e9;--muted:#c8c1b5;--panel:#17211f;--lime:#d6ed91;--red:#ff8a72}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#b7c4b1;font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:var(--ink)}
+#game{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;touch-action:none}
+.hud{position:fixed;inset:0;pointer-events:none;padding:clamp(12px,3vw,28px);display:flex;flex-direction:column;justify-content:space-between}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.brand,.stat,.hint{background:#17211fdd;border:1px solid #ffffff25;border-radius:16px;padding:10px 14px;backdrop-filter:blur(8px);box-shadow:0 8px 25px #1b292522}
+.brand b{font-size:clamp(17px,3vw,25px);letter-spacing:-1px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.stats{display:flex;gap:8px}.stat{text-align:center;min-width:76px}.stat small{display:block;color:var(--muted);font-size:10px}.stat strong{font-size:clamp(18px,3vw,25px);font-variant-numeric:tabular-nums}
+.bottom{display:flex;justify-content:center}.hint{font-size:13px;color:#f8f3e9;text-align:center;max-width:540px}
+.overlay{position:fixed;inset:0;display:grid;place-items:center;background:#10191666;backdrop-filter:blur(5px);padding:20px}
+.panel{width:min(440px,100%);background:#17211ff2;border:1px solid #ffffff2a;border-radius:24px;padding:26px;text-align:center;box-shadow:0 25px 80px #0c171455}
+.panel h1{font-size:clamp(30px,8vw,48px);margin:0 0 8px;letter-spacing:-2px}.panel p{color:#d1d8c9;line-height:1.6;margin:8px 0 20px}
+button{border:0;border-radius:14px;background:var(--lime);color:#20291c;font-weight:900;font-size:17px;padding:14px 25px;cursor:pointer;min-width:160px}
+button:active{transform:scale(.98)}.sub{font-size:12px!important;color:#aeb9aa!important;margin-top:16px!important}
+#toast{position:fixed;left:50%;top:24%;transform:translate(-50%,-50%);font-size:clamp(22px,5vw,38px);font-weight:1000;text-shadow:0 3px 8px #17211f99;pointer-events:none;opacity:0;transition:opacity .15s}
+.hidden{display:none!important}
+@media(max-width:560px){.stats{gap:5px}.stat{min-width:58px;padding:8px}.brand{padding:9px 11px}.hint{font-size:12px}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div class="hud">
+ <div class="top">
+  <div class="brand"><b>받아? 쳐내!</b><small>GRAB OR SWAT · 3D PROTOTYPE</small></div>
+  <div class="stats">
+   <div class="stat"><small>남은 시간</small><strong id="time">60</strong></div>
+   <div class="stat"><small>처리 개수</small><strong id="count">0</strong></div>
+   <div class="stat"><small>연속 성공</small><strong id="combo">0</strong></div>
+  </div>
+ </div>
+ <div class="bottom"><div class="hint" id="hint">물건이 오면 오른쪽 팔을 위·아래로 드래그하고 손을 놓으세요.</div></div>
+</div>
+<div id="toast"></div>
+<div class="overlay" id="start">
+ <div class="panel">
+  <h1>받아? 쳐내!</h1>
+  <p>왼쪽에서 날아오는 물건을 보고 판단하세요.<br><b>받을 물건은 아래로 ↓</b><br><b>수상한 물건은 위로 ↑</b><br>3초 안에 결정하지 못하거나 틀리면 게임 종료!</p>
+  <button id="startBtn">게임 시작</button>
+  <p class="sub">PC: 마우스 드래그 · 모바일: 손가락 드래그</p>
+ </div>
+</div>
+<div class="overlay hidden" id="end">
+ <div class="panel">
+  <h1 id="endTitle">GAME OVER</h1>
+  <p id="endText">처리한 물건 0개</p>
+  <button id="againBtn">다시 하기</button>
+  <p class="sub">물건 주인이 뒤돌아 화를 냈습니다.</p>
+ </div>
+</div>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+const mount=document.querySelector('#game');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0xb7c4b1); scene.fog=new THREE.Fog(0xb7c4b1,12,25);
+const camera=new THREE.PerspectiveCamera(36,innerWidth/innerHeight,.1,100); camera.position.set(0,5.2,13.8); camera.lookAt(0,1.6,0);
+const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; mount.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0x71806c,2));
+const sun=new THREE.DirectionalLight(0xfff3d9,2.5); sun.position.set(-4,9,7); sun.castShadow=true; scene.add(sun);
+const mat=(c,r=.85)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(30,30),mat(0x9cab91)); floor.rotation.x=-Math.PI/2; floor.position.y=-.03; floor.receiveShadow=true; scene.add(floor);
+const back=new THREE.Mesh(new THREE.PlaneGeometry(30,12),mat(0xc5cfb9)); back.position.set(0,5,-3); scene.add(back);
+const grid=new THREE.GridHelper(30,30,0x7e927c,0x9aaa91); grid.position.y=.005; scene.add(grid);
+
+function box(parent,w,h,d,color,x,y,z,rz=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));m.position.set(x,y,z);m.rotation.z=rz;m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+function sphere(parent,r,color,x,y,z,sx=1,sy=1,sz=1){const m=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),mat(color));m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;parent.add(m);return m}
+const person=new THREE.Group();person.position.set(0,0,0);scene.add(person);
+// intentionally awkward, low-poly victim viewed from behind
+box(person,1.05,1.45,.48,0xf0eadb,0,2.05,0);
+box(person,.18,.82,.23,0x8a7557,-.32,1.18,.03,-.05);box(person,.18,.82,.23,0x8a7557,.32,1.18,.03,.05);
+box(person,.12,1.45,.12,0x8b6847,-.38,2.02,.28);box(person,.12,1.45,.12,0x8b6847,.38,2.02,.28);
+box(person,.42,.48,.42,0x9c8060,0,.63,0);
+sphere(person,.39,0xc69b76,0,3.18,0,1,1.08,.9);
+const hair=sphere(person,.4,0x554638,0,3.43,-.02,1.05,.55,.95);
+const legL=box(person,.36,.95,.4,0x78664e,-.29,.12,0),legR=box(person,.36,.95,.4,0x78664e,.29,.12,0);
+// arms groups pivot at shoulders
+const leftArm=new THREE.Group();leftArm.position.set(-.62,2.55,.05);person.add(leftArm);
+box(leftArm,.28,1.05,.28,0x315c43,0,-.48,0,-.18);sphere(leftArm,.2,0xc69b76,-.08,-1.02,.02);
+const rightArm=new THREE.Group();rightArm.position.set(.62,2.55,.2);person.add(rightArm);
+const sleeve=box(rightArm,.34,1.05,.34,0x78877d,0,-.47,0,.15);const hand=sphere(rightArm,.22,0xc69b76,.05,-1.02,.02,1.1,.8,.8);
+rightArm.rotation.z=-.55;
+
+// thief arm from left
+const thief=new THREE.Group();thief.position.set(-4.2,3.7,.1);scene.add(thief);
+box(thief,.38,1.5,.38,0x315c43,0,-.7,0,-.12);sphere(thief,.24,0xc69b76,-.05,-1.48,.03);
+const itemGroup=new THREE.Group();scene.add(itemGroup);
+const itemNames=['지갑','돈','담배','모자','라이터','돌멩이','벽돌','막대기','수배 전단지','옥수수','신문'];
+const catchSet=new Set(['지갑','돈','담배','모자','라이터']);
+const colors={지갑:0x79543a,돈:0xe9e5d8,담배:0xe8dfc8,모자:0x806345,라이터:0x8dabb0,돌멩이:0x777a72,벽돌:0x9b5945,막대기:0x98744b,'수배 전단지':0xe6dfc8,옥수수:0xe2c34e,신문:0xd9d4c7};
+let currentItem=null, itemMesh=null, active=false, remaining=60, processed=0,combo=0,elapsed=0,spawnWait=0,decisionTimer=0,dragging=false,dragStartY=0,dragDelta=0,armBase=-.55,lastType='',sameRun=0,gameClock=0,toastTimer=0;
+const $=s=>document.querySelector(s);
+function makeItem(name){
+ const g=new THREE.Group(),c=colors[name];
+ if(name==='돈'||name==='수배 전단지'||name==='신문'){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(name==='돈'?.62:.72,name==='돈'?.38:.5,.035),mat(c));m.castShadow=true;g.add(m);
+  if(name==='돈'){for(let i=0;i<3;i++){const line=box(g,.36,.018,.012,0x263c68,0,.1-i*.09,.03);}}
+  else {box(g,.34,.025,.012,name==='신문'?0x77766d:0x4a4d48,0,.08,.03);}
+ } else if(name==='막대기'){const m=new THREE.Mesh(new THREE.CylinderGeometry(.07,.09,.85,7),mat(c));m.rotation.z=Math.PI/2;m.castShadow=true;g.add(m);}
+ else if(name==='돌멩이'){const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.32,0),mat(c));m.scale.set(1.2,.8,1);m.castShadow=true;g.add(m);}
+ else if(name==='옥수수'){const m=new THREE.Mesh(new THREE.CapsuleGeometry(.19,.55,4,8),mat(c));m.rotation.z=Math.PI/2;m.castShadow=true;g.add(m);for(let i=0;i<5;i++){const leaf=box(g,.32,.08,.08,0x66834a,-.15+i*.07,-.22,.02,.4);}}
+ else if(name==='모자'){const crown=new THREE.Mesh(new THREE.CylinderGeometry(.22,.27,.32,8),mat(c));crown.position.y=.1;g.add(crown);const brim=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,.06,12),mat(c));brim.position.y=-.08;g.add(brim);}
+ else {const m=new THREE.Mesh(new THREE.BoxGeometry(name==='지갑'?.58:.5,name==='지갑'?.38:.18,.2),mat(c));m.castShadow=true;g.add(m);if(name==='라이터')box(g,.08,.05,.22,0xd8c8a1,.18,.1,0);}
+ return g;
+}
+function chooseItem(){
+ let n;do{n=itemNames[Math.floor(Math.random()*itemNames.length)]}while(n===lastType&&sameRun>=2);
+ if(n===lastType)sameRun++;else{lastType=n;sameRun=1;}return n;
+}
+function showToast(t,color='#fff'){const el=$('#toast');el.textContent=t;el.style.color=color;el.style.opacity=1;toastTimer=.8;}
+function updateHud(){$('#time').textContent=Math.ceil(remaining);$('#count').textContent=processed;$('#combo').textContent=combo;}
+function spawn(){
+ currentItem=chooseItem();itemMesh=makeItem(currentItem);itemMesh.position.set(-3.45,2.2,.75);itemMesh.scale.setScalar(.8);itemGroup.add(itemMesh);
+ thief.position.set(-3.9,4.25,.1);decisionTimer=0;dragDelta=0;spawnWait=0;
+ $('#hint').textContent=`${currentItem} 등장! 오른쪽 팔을 위/아래로 드래그하세요.`;
+}
+function clearItem(){if(itemMesh){itemGroup.remove(itemMesh);itemMesh.traverse(o=>{if(o.geometry)o.geometry.dispose();});itemMesh=null;}currentItem=null;}
+function finish(success,action){
+ if(!active)return;
+ const shouldCatch=catchSet.has(currentItem),correct=(shouldCatch&&action==='catch')||(!shouldCatch&&action==='swat');
+ if(!correct){active=false;clearItem();$('#endTitle').textContent='GAME OVER';$('#endText').textContent=`처리한 물건 ${processed}개 · 연속 성공 ${combo}회`;$('#end').classList.remove('hidden');return;}
+ processed++;combo++;showToast(action==='catch'?'GET!':'SWAT!', '#f4ffbd');updateHud();clearItem();rightArm.rotation.z=action==='catch'?.2:-1.25;setTimeout(()=>{if(active)rightArm.rotation.z=-.55;},220);
+ spawnWait=Math.max(.22,.72-(60-remaining)*.006);
+}
+function start(){active=true;remaining=60;processed=0;combo=0;elapsed=0;spawnWait=.5;lastType='';sameRun=0;clearItem();$('#start').classList.add('hidden');$('#end').classList.add('hidden');updateHud();$('#hint').textContent='물건이 오면 3초 안에 판단하세요!';}
+$('#startBtn').onclick=start;$('#againBtn').onclick=start;
+function pointerDown(e){if(!active||!currentItem)return;dragging=true;dragStartY=e.clientY;dragDelta=0;renderer.domElement.setPointerCapture?.(e.pointerId);}
+function pointerMove(e){if(!dragging)return;dragDelta=e.clientY-dragStartY;const norm=THREE.MathUtils.clamp(dragDelta/180,-1,1);rightArm.rotation.z=THREE.MathUtils.clamp(-.55+norm*1.25,-1.5,.65);}
+function pointerUp(){if(!dragging)return;dragging=false;if(!currentItem||!active)return;if(Math.abs(dragDelta)<25){rightArm.rotation.z=-.55;return;}finish(true,dragDelta>0?'catch':'swat');}
+renderer.domElement.addEventListener('pointerdown',pointerDown);renderer.domElement.addEventListener('pointermove',pointerMove);window.addEventListener('pointerup',pointerUp);
+let last=performance.now();
+function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.05);last=now;gameClock+=dt;
+ if(active){
+  remaining-=dt; if(remaining<=0){remaining=0;active=false;clearItem();$('#endTitle').textContent='TIME UP!';$('#endText').textContent=`60초 완료! ${processed}개 처리 성공`;$('#end').classList.remove('hidden');}
+  if(active){if(!currentItem){spawnWait-=dt;if(spawnWait<=0)spawn();}
+   else {decisionTimer+=dt;const progress=Math.min(decisionTimer/2.9,1);thief.position.x=-3.9+progress*1.65;thief.position.y=4.25-progress*.55+Math.sin(gameClock*12)*.035;itemMesh.position.x=-3.45+progress*2.05;itemMesh.position.y=2.2+Math.sin(gameClock*8)*.08;itemMesh.rotation.z=Math.sin(gameClock*7)*.12;
+    if(decisionTimer>=3){active=false;clearItem();$('#endTitle').textContent='TOO SLOW!';$('#endText').textContent=`3초 동안 결정하지 못했어요. ${processed}개 처리`;$('#end').classList.remove('hidden');}
+   }
+  }
+ }
+ if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)$('#toast').style.opacity=0;}
+ updateHud();renderer.render(scene,camera);
+}
+requestAnimationFrame(animate);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+</script>
+</body></html>
