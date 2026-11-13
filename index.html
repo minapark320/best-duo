@@ -10,104 +10,36 @@
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9bd6f4;font-family:Arial,"Noto Sans KR",sans-serif}
 #game{position:fixed;inset:0}
 canvas{display:block;width:100%;height:100%;touch-action:none}
-
-.hud{
- position:fixed;top:12px;left:12px;right:12px;
- display:flex;justify-content:space-between;align-items:flex-start;
- pointer-events:none;z-index:3
-}
-.logo,.stat{
- background:rgba(255,247,226,.91);
- color:#35534b;
- border:1px solid rgba(255,255,255,.85);
- border-radius:12px;
- padding:10px 13px;
- box-shadow:0 4px 12px #263b3520
-}
+.hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:3}
+.logo,.stat{background:rgba(255,247,226,.94);color:#35534b;border:1px solid white;border-radius:12px;padding:10px 13px;box-shadow:0 4px 12px #263b3520}
 .logo{font-weight:900;font-size:17px}
 .stats{display:flex;gap:6px}
 .stat{text-align:center;min-width:62px}
 .stat small{display:block;font-size:10px;color:#71847b}
 .stat strong{font-size:22px;color:#35534b}
-
-#speech{
- position:fixed;z-index:3;top:18%;left:50%;
- transform:translateX(-50%);
- width:max-content;max-width:75%;
- background:rgba(255,249,235,.78);
- color:#35443c;
- border:1px solid rgba(255,255,255,.8);
- border-radius:17px;
- padding:8px 15px;
- font-weight:400;
- font-size:clamp(13px,3.5vw,16px);
- text-align:center;line-height:1.4;
- box-shadow:0 3px 10px #233b3520;
- pointer-events:none;
-}
-#speech:after{
- content:"";
- position:absolute;
- left:50%;
- top:-12px;
- transform:translateX(-50%);
- width:0;height:0;
- border-left:9px solid transparent;
- border-right:9px solid transparent;
- border-bottom:13px solid rgba(255,249,235,.78);
-}
+#speech{position:fixed;z-index:3;top:17%;left:50%;transform:translateX(-50%);width:max-content;max-width:75%;background:rgba(255,249,235,.78);color:#35443c;border:1px solid #ffffffaa;border-radius:16px;padding:8px 15px;font-size:15px;font-weight:400;text-align:center;box-shadow:0 3px 10px #233b3520;pointer-events:none}
+#speech:after{content:"";position:absolute;left:50%;top:-12px;transform:translateX(-50%);border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:13px solid rgba(255,249,235,.78)}
 #speech.hidden{display:none}
-
-#itemCard{
- position:fixed;z-index:3;top:29%;left:50%;
- transform:translateX(-50%);
- width:calc(100% - 38px);
- max-width:440px;
- padding:11px 16px;
- background:rgba(255,248,231,.94);
- border:2px solid #fff;
- border-radius:20px;
- color:#35443c;
- box-shadow:0 5px 12px #263b3525;
- pointer-events:none;
- display:flex;align-items:center;gap:14px;
-}
-#itemCard small{display:block;color:#9b7856;font-size:11px;margin-bottom:3px}
-#itemCard strong{font-size:19px}
-#itemCard.hidden{display:none}
-
-#hint{
- position:fixed;bottom:22px;left:0;right:0;
- text-align:center;color:white;font-weight:800;
- text-shadow:0 2px 5px #263b35;
- pointer-events:none;z-index:3;font-size:13px
-}
-.overlay{
- position:fixed;inset:0;display:grid;place-items:center;
- background:#172b2966;padding:20px;z-index:5
-}
-.panel{
- width:min(390px,100%);background:#fff8e9;color:#293a32;
- border-radius:22px;padding:25px 22px;text-align:center;
- box-shadow:0 15px 45px #243b3c66;border:2px solid #fff
-}
-.panel h1{font-size:clamp(27px,7vw,36px);margin:0 0 12px}
-.panel p{line-height:1.7}
-.intro{font-size:clamp(27px,7vw,36px);font-weight:900;line-height:1.3;color:#b85d36;margin:12px 0}
-.intro-sub{font-weight:700;font-size:15px;line-height:1.7}
-.intro-small{font-size:13px;color:#786c5b;margin:16px 0}
-.speech-preview{
- background:#f3e7ce;border-radius:15px;padding:10px;
- font-size:14px;font-weight:400;margin:16px 0;
-}
-button{
- background:#e9a64c;color:#34271c;border:0;
- border-radius:13px;padding:14px 32px;
- font-size:17px;font-weight:900;
- box-shadow:0 4px 0 #bd7e36
-}
+#hint{position:fixed;bottom:22px;left:0;right:0;text-align:center;color:white;font-weight:800;text-shadow:0 2px 5px #263b35;pointer-events:none;z-index:3;font-size:13px}
+.overlay{position:fixed;inset:0;display:grid;place-items:center;background:#172b2966;padding:20px;z-index:5}
+.panel{width:min(410px,100%);max-height:90%;overflow:auto;background:#fff8e9;color:#293a32;border-radius:22px;padding:23px 20px;text-align:center;box-shadow:0 15px 45px #243b3c66;border:2px solid white}
+.panel h1{font-size:clamp(26px,7vw,35px);margin:0 0 10px}
+.panel p{line-height:1.6}
+.intro{font-size:clamp(28px,7vw,36px);font-weight:900;line-height:1.25;color:#b85d36;margin:12px 0}
+.intro-sub{font-weight:700;font-size:14px;line-height:1.7}
+.section-title{font-size:12px;font-weight:800;color:#8c765a;text-align:left;margin:13px 0 7px}
+.item-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.item-tile{background:#f1e8d8;border-radius:10px;padding:7px 2px 6px;min-width:0}
+.item-tile svg{width:100%;height:35px;display:block}
+.item-tile span{font-size:10px;font-weight:700;display:block;margin-top:3px;white-space:nowrap}
+.item-groups{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.group-label{font-size:12px;font-weight:900;margin-bottom:6px}
+.group-label.receive{color:#54806a}
+.group-label.reject{color:#b56b4a}
+button{background:#e9a64c;color:#34271c;border:0;border-radius:13px;padding:14px 32px;font-size:17px;font-weight:900;box-shadow:0 4px 0 #bd7e36;margin-top:12px}
 button:active{transform:translateY(3px);box-shadow:0 1px 0 #bd7e36}
 .hidden{display:none!important}
+.result{font-size:25px;font-weight:900;margin:20px 0}
 </style>
 </head>
 <body>
@@ -122,35 +54,71 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #bd7e36}
 </div>
 
 <div id="speech" class="hidden">척하면 척!</div>
-<div id="itemCard" class="hidden">
- <div style="font-size:28px" id="itemIcon">🎁</div>
- <div><small>이번 물건</small><strong id="itemName">지갑</strong></div>
-</div>
 <div id="hint" class="hidden">↓ 아래로 드래그: 받기　/　↑ 위로 드래그: 쳐내기</div>
 
 <div class="overlay" id="start">
  <div class="panel">
   <h1>환상의 짝꿍</h1>
-  <div class="speech-preview">척하면 척! 딱하면 딱!</div>
   <div class="intro">나는 최고의<br>소매치기!</div>
-  <div class="intro-sub">
-   쥐도 새도 모르게 지갑만 쏙!<br>
-   여유로운 행인의 주머니를 털어라!
+  <div class="intro-sub">쥐도 새도 모르게 지갑만 쏙!<br>덕형과 한길의 완벽한 팀워크!</div>
+
+  <div class="section-title">아래 물건은 받아!</div>
+  <div class="item-grid">
+   <div class="item-tile">
+    <svg viewBox="0 0 50 35"><rect x="7" y="7" width="36" height="23" rx="5" fill="#795039"/><rect x="10" y="11" width="30" height="14" rx="3" fill="#a77a55"/><circle cx="35" cy="18" r="3" fill="#e5c16d"/></svg>
+    <span>지갑</span>
+   </div>
+   <div class="item-tile">
+    <svg viewBox="0 0 50 35"><rect x="5" y="7" width="40" height="23" rx="2" fill="#f5f0dc"/><rect x="9" y="10" width="32" height="17" fill="#456a87"/><circle cx="25" cy="18" r="6" fill="#e8dfc7"/></svg>
+    <span>돈</span>
+   </div>
+   <div class="item-tile">
+    <svg viewBox="0 0 50 35"><rect x="14" y="3" width="22" height="29" rx="3" fill="#e8e1d1"/><rect x="14" y="5" width="22" height="9" fill="#b94c42"/></svg>
+    <span>담뱃갑</span>
+   </div>
+   <div class="item-tile">
+    <svg viewBox="0 0 50 35"><path d="M12 21 Q12 5 25 5 Q38 5 38 21Z" fill="#31546a"/><path d="M5 22 Q25 17 45 22 L43 27 Q25 23 7 27Z" fill="#31546a"/></svg>
+    <span>모자</span>
+   </div>
+   <div class="item-tile">
+    <svg viewBox="0 0 50 35"><rect x="17" y="7" width="16" height="25" rx="3" fill="#aeb7ba"/><rect x="20" y="3" width="10" height="6" rx="1" fill="#626d71"/></svg>
+    <span>라이터</span>
+   </div>
   </div>
-  <p class="intro-small">
-   아래로 드래그하면 받을 수 있는 물건,<br>
-   위로 드래그하면 위험한 물건을 쳐낼 수 있어!
-  </p>
+
+  <div class="section-title">이 물건은 쳐내!</div>
+  <div class="item-grid">
+   <div class="item-tile">
+    <svg viewBox="0 0 50 35"><path d="M8 23 L14 8 29 5 42 17 35 29 15 30Z" fill="#858b86"/></svg>
+    <span>돌</span>
+   </div>
+   <div class="item-tile">
+    <svg viewBox="0 0 50 35"><rect x="6" y="8" width="38" height="21" rx="2" fill="#a95b47"/><circle cx="17" cy="18" r="3" fill="#633c34"/><circle cx="33" cy="18" r="3" fill="#633c34"/></svg>
+    <span>벽돌</span>
+   </div>
+   <div class="item-tile">
+    <svg viewBox="0 0 50 35"><path d="M5 27 Q20 5 44 9" stroke="#79532f" stroke-width="5" stroke-linecap="round" fill="none"/></svg>
+    <span>나뭇가지</span>
+   </div>
+   <div class="item-tile">
+    <svg viewBox="0 0 50 35"><rect x="8" y="3" width="34" height="29" rx="2" fill="#f3e8d0"/><circle cx="25" cy="14" r="7" fill="none" stroke="#514b45" stroke-width="1.5"/><path d="M18 22 L22 24 25 22 28 24 32 22" stroke="#514b45" fill="none" stroke-width="1.5"/></svg>
+    <span>수배 전단지</span>
+   </div>
+   <div class="item-tile">
+    <svg viewBox="0 0 50 35"><rect x="13" y="3" width="24" height="29" rx="12" fill="#eac94c"/><path d="M13 24 Q7 18 10 9 Q18 14 19 23Z" fill="#54894c"/><path d="M37 24 Q43 18 40 9 Q32 14 31 23Z" fill="#54894c"/></svg>
+    <span>옥수수</span>
+   </div>
+  </div>
+  <p style="font-size:12px;color:#84745e">3초 안에 판단해야 해!</p>
   <button id="startBtn">작전 시작</button>
  </div>
 </div>
 
 <div class="overlay hidden" id="end">
  <div class="panel">
-  <div class="speech-preview">지금 뭐 하시는 거예요?</div>
   <h1>작전 발각!</h1>
-  <p>자경이에게 들켰습니다!</p>
-  <div style="font-size:26px;font-weight:900;margin:20px 0" id="result">훔친 물건 0개</div>
+  <p>자경이에게 들켰습니다.</p>
+  <div class="result" id="result">훔친 물건 0개</div>
   <button id="again">다시 도전하기</button>
  </div>
 </div>
@@ -164,14 +132,13 @@ import * as THREE from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 const $=id=>document.getElementById(id);
-
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x9bd6f4);
 scene.fog=new THREE.Fog(0x9bd6f4,30,70);
 
 const camera=new THREE.PerspectiveCamera(34,innerWidth/innerHeight,.1,100);
-camera.position.set(0,2.9,8.8);
-camera.lookAt(0,2.1,0);
+camera.position.set(0,2.85,8.8);
+camera.lookAt(0,2.05,0);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
@@ -190,33 +157,23 @@ sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
 scene.add(sun);
 
-function mat(color,roughness=.84){
- return new THREE.MeshStandardMaterial({color,roughness});
-}
+function mat(color,roughness=.84){return new THREE.MeshStandardMaterial({color,roughness});}
 function roundedBox(parent,color,pos,size,radius=.08){
- const geo=new RoundedBoxGeometry(size[0],size[1],size[2],4,radius);
- const m=new THREE.Mesh(geo,mat(color));
- m.position.set(...pos);
- m.castShadow=true;m.receiveShadow=true;
- parent.add(m);return m;
+ const m=new THREE.Mesh(new RoundedBoxGeometry(size[0],size[1],size[2],4,radius),mat(color));
+ m.position.set(...pos);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
 }
 function sphere(parent,color,pos,scale=[1,1,1]){
  const m=new THREE.Mesh(new THREE.SphereGeometry(.5,28,20),mat(color));
- m.position.set(...pos);m.scale.set(...scale);
- m.castShadow=true;m.receiveShadow=true;
- parent.add(m);return m;
+ m.position.set(...pos);m.scale.set(...scale);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
 }
 function capsule(parent,color,pos,radius,length,rotation=[0,0,0]){
  const m=new THREE.Mesh(new THREE.CapsuleGeometry(radius,length,6,18),mat(color));
- m.position.set(...pos);m.rotation.set(...rotation);
- m.castShadow=true;m.receiveShadow=true;
- parent.add(m);return m;
+ m.position.set(...pos);m.rotation.set(...rotation);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
 }
 
-// 배경
+// 시골 배경
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(100,100),mat(0x91b879));
 ground.rotation.x=-Math.PI/2;ground.position.y=-.15;scene.add(ground);
-
 const road=new THREE.Mesh(new THREE.PlaneGeometry(7,65),mat(0xc9a77c));
 road.rotation.x=-Math.PI/2;road.position.set(0,-.07,-12);scene.add(road);
 
@@ -227,17 +184,12 @@ for(let i=0;i<55;i++){
  stone.scale.set(1.5,.4,1);scene.add(stone);
 }
 for(let i=0;i<65;i++){
- const side=Math.random()>.5?1:-1;
- const x=side*(4+Math.random()*7),z=-28+Math.random()*35;
+ const side=Math.random()>.5?1:-1,x=side*(4+Math.random()*7),z=-28+Math.random()*35;
  capsule(scene,0x547b45,[x,.2,z],.035,.35,[0,0,(Math.random()-.5)*.8]);
 }
 for(const side of [-1,1]){
- for(let i=0;i<10;i++){
-  roundedBox(scene,0x806044,[side*5.2,.55,-27+i*3],[.16,1.1,.16],.04);
- }
- for(const y of [.45,.85]){
-  roundedBox(scene,0x9a7955,[side*5.2,y,-13],[.13,.13,30],.04);
- }
+ for(let i=0;i<10;i++)roundedBox(scene,0x806044,[side*5.2,.55,-27+i*3],[.16,1.1,.16],.04);
+ for(const y of [.45,.85])roundedBox(scene,0x9a7955,[side*5.2,y,-13],[.13,.13,30],.04);
 }
 for(let i=0;i<12;i++){
  const h=2+Math.random()*3;
@@ -251,65 +203,46 @@ for(let i=0;i<8;i++){
  cloud.position.set(-14+i*4,9+(i%3),-20);scene.add(cloud);
 }
 
-// 자경이: 화면 아래에 크게, 얼굴과 머리가 잘 보이도록
+// 자경이
 const victim=new THREE.Group();
 scene.add(victim);
-victim.position.set(0,-.05,-.25);
-victim.scale.set(1.48,1.48,1.48);
+victim.position.set(0,-.1,-.25);
+victim.scale.setScalar(1.5);
 
 const torso=new THREE.Group();
-torso.position.set(0,.35,0);
+torso.position.set(0,.25,0);
 victim.add(torso);
-
-// 몸통은 화면 아래로 잘리도록 크게 배치
 roundedBox(torso,0xf0eee5,[0,-.15,0],[1.25,1.65,.68],.13);
-
-// 목
 capsule(torso,0xe8b18f,[0,.73,0],.18,.22);
 
-// 자경이의 긴 셔츠 소매와 손
 for(const side of [-1,1]){
- const sleeve=roundedBox(torso,0xf0eee5,[side*.7,.05,0],[.42,1.05,.55],.17);
- sleeve.rotation.z=-side*.05;
- capsule(torso,0xe8b18f,[side*.72,-.58,.02],.13,.18);
-}
-
-// 앞 멜빵
-for(const side of [-1,1]){
+ roundedBox(torso,0xf0eee5,[side*.66,.02,0],[.4,1.0,.55],.17);
+ capsule(torso,0xe8b18f,[side*.66,-.55,.02],.13,.18);
  roundedBox(torso,0x795338,[side*.3,.05,.355],[.1,1.05,.045],.025);
 }
 
-// 얼굴과 머리
 const head=new THREE.Group();
-head.position.set(0,1.12,0);
+head.position.set(0,1.1,0);
 torso.add(head);
-
 sphere(head,0xe8b18f,[0,0,0],[.88,.9,.78]);
 
-// 머리카락은 한 덩어리 실루엣, 앞쪽으로 사선
-const hair=new THREE.Group();
-head.add(hair);
-sphere(hair,0x211d20,[0,.24,-.11],[.91,.62,.82]);
-const fringe=sphere(hair,0x211d20,[0,.43,.19],[.86,.31,.57]);
-fringe.rotation.z=-.13;
+// 머리카락: 두 파츠가 아닌 한 덩어리로 정리
+const hair=sphere(head,0x211d20,[0,.25,-.03],[.91,.67,.83]);
+hair.rotation.z=-.09;
+const fringe=sphere(head,0x211d20,[0,.38,.19],[.85,.25,.54]);
+fringe.rotation.z=-.18;
 
-// 귀
-for(const side of [-1,1]){
- sphere(head,0xe8b18f,[side*.43,-.04,.02],[.15,.19,.13]);
-}
+for(const side of [-1,1])sphere(head,0xe8b18f,[side*.43,-.04,.02],[.15,.19,.13]);
 
-// 안경
 const glasses=new THREE.Group();
 head.add(glasses);
 for(const side of [-1,1]){
  const ring=new THREE.Mesh(new THREE.TorusGeometry(.16,.023,8,24),mat(0x242424));
- ring.position.set(side*.19,.02,.4);
- glasses.add(ring);
+ ring.position.set(side*.19,.02,.4);glasses.add(ring);
  sphere(glasses,0x242424,[side*.19,.02,.42],[.035,.05,.025]);
 }
 roundedBox(glasses,0x242424,[0,.02,.41],[.09,.025,.025],.01);
 
-// 화난 눈썹
 const angryBrows=new THREE.Group();
 head.add(angryBrows);
 for(const side of [-1,1]){
@@ -321,55 +254,51 @@ angryBrows.visible=false;
 // 책
 const book=new THREE.Group();
 book.position.set(.52,-.3,.35);
-book.rotation.z=-.1;
-torso.add(book);
+book.rotation.z=-.1;torso.add(book);
 roundedBox(book,0x70432f,[0,0,0],[.35,.53,.09],.03);
 roundedBox(book,0xe9d9b9,[0,0,.055],[.29,.47,.02],.02);
 
-// 덕형과 한길의 팔: 소매와 손이 이어진 한 덩어리
-// 팔은 화면 양쪽 위에서 중앙으로 크게 휘어져 내려온다.
-function makeForearm(color){
- const group=new THREE.Group();
- scene.add(group);
- const sleeve=roundedBox(group,color,[0,0,0],[.66,1.65,.58],.22);
- const hand=sphere(group,0xf1c19d,[0,-.93,0],[.48,.47,.43]);
- return {group,sleeve,hand};
+// 팔: 어깨 축에 소매와 손을 붙여 하나의 그룹으로 구성
+function createArm(sleeveColor,side){
+ const pivot=new THREE.Group();
+ scene.add(pivot);
+ pivot.position.set(side*1.55,3.05,3.15);
+
+ // 소매는 어깨에서 아래로 이어지는 넓은 둥근 네모
+ roundedBox(pivot,sleeveColor,[0,-.68,0],[.68,1.55,.58],.23);
+
+ // 손은 소매 끝에 바로 연결
+ sphere(pivot,0xf1c19d,[0,-1.57,.015],[.48,.48,.44]);
+
+ return pivot;
 }
 
-const leftArm=makeForearm(0x59734e);
-const rightArm=makeForearm(0x84968b);
+const leftArm=createArm(0x59734e,-1);
+const rightArm=createArm(0x84968b,1);
 
-const armTargets={
- left:{x:-1.35,y:2.5,z:2.5,angle:-.72},
- right:{x:1.35,y:2.5,z:2.5,angle:.72}
-};
-const armCurrent={
- left:{...armTargets.left},
- right:{...armTargets.right}
-};
+const leftBase=1.0;
+const rightBase=-1.0;
+leftArm.rotation.z=leftBase;
+rightArm.rotation.z=rightBase;
 
-function updateArm(arm,data){
- arm.group.position.set(data.x,data.y,data.z);
- arm.group.rotation.z=data.angle;
-}
+let leftSwing=0;
+let rightDrag=0;
 
-// 물건
+// 아이템
 const itemHolder=new THREE.Group();
 scene.add(itemHolder);
-
 const itemNames=['지갑','돈','담뱃갑','모자','라이터','돌','벽돌','막대기','수배 전단지','옥수수'];
 const catchItems=new Set(['지갑','돈','담뱃갑','모자','라이터']);
-const icons={'지갑':'👛','돈':'💵','담뱃갑':'🚬','모자':'🧢','라이터':'🔦','돌':'🪨','벽돌':'🧱','막대기':'🌿','수배 전단지':'📄','옥수수':'🌽'};
 
 let currentItem=null,currentName='';
-let itemTimer=0,spawnTimer=0;
-let score=0,time=60,active=false,combo=0;
-let lastName='',repeat=0;
-let dragging=false,startY=0,dragY=0;
+let itemTimer=0,spawnTimer=0,score=0,time=60,active=false;
+let combo=0,lastName='',repeat=0,dragging=false,startY=0,dragY=0;
 let turning=false,turnProgress=0,shake=0;
+let phraseIndex=0;
 
 function makeItem(name){
  const g=new THREE.Group();
+
  if(name==='지갑'){
   roundedBox(g,0x754a34,[0,0,0],[.56,.38,.12],.045);
   roundedBox(g,0x9a7354,[0,.02,.07],[.48,.06,.02],.015);
@@ -394,29 +323,34 @@ function makeItem(name){
   const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.3),mat(0x747b79));
   rock.scale.set(1.2,.9,1);g.add(rock);
  }else if(name==='벽돌'){
-  roundedBox(g,0xa64e3d,[0,0,0],[.62,.35,.3],.035);
+  roundedBox(g,0xa95b47,[0,0,0],[.72,.4,.28],.035);
+  // 벽돌의 구멍 두 개
+  for(const x of [-.19,.19]){
+   const hole=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.025,16),mat(0x633c34));
+   hole.rotation.x=Math.PI/2;
+   hole.position.set(x,0,.15);g.add(hole);
+  }
  }else if(name==='막대기'){
   capsule(g,0x79532f,[0,0,0],.075,.85,[0,0,Math.PI/2]);
  }else if(name==='옥수수'){
-  // 긴 노란 옥수수 몸통, 작게 보이는 초록 껍질 두 장
-  capsule(g,0xe9c442,[0,0,0],.19,.72,[0,0,Math.PI/2]);
-  capsule(g,0x4f8745,[-.34,-.03,.02],.07,.27,[0,0,-.9]);
-  capsule(g,0x65974b,[.34,-.03,.02],.07,.27,[0,0,.9]);
+  // 길고 노란 몸통, 짧고 둥근 초록 껍질
+  capsule(g,0xe9c442,[0,0,0],.19,.78,[0,0,Math.PI/2]);
+  sphere(g,0x4f8745,[-.32,-.08,.02],[.12,.18,.1]);
+  sphere(g,0x65974b,[.32,-.08,.02],[.12,.18,.1]);
  }else if(name==='수배 전단지'){
   roundedBox(g,0xf3e8d0,[0,0,0],[.62,.48,.035],.015);
-  const outline=new THREE.Mesh(new THREE.TorusGeometry(.13,.012,6,24),mat(0x302c29));
-  outline.position.set(0,-.015,.035);g.add(outline);
-  for(const x of [-.05,.05])sphere(g,0x302c29,[x,.015,.05],[.025,.025,.012]);
-  // 코는 생략, 입은 W 모양 선
-  const w=new THREE.Group();
-  const pts=[[-.1,-.09,0],[-.05,-.13,0],[0,-.09,0],[.05,-.13,0],[.1,-.09,0]];
+  const outline=new THREE.Mesh(new THREE.TorusGeometry(.12,.009,6,24),mat(0x514b45));
+  outline.position.set(0,.025,.035);g.add(outline);
+  for(const x of [-.045,.045])sphere(g,0x514b45,[x,.04,.05],[.018,.018,.01]);
+  // 코 생략, 부드러운 W자 입
+  const points=[[-.09,-.065],[-.045,-.09],[0,-.065],[.045,-.09],[.09,-.065]];
   for(let i=0;i<4;i++){
-   const a=new THREE.Vector3(...pts[i]),b=new THREE.Vector3(...pts[i+1]);
-   const d=new THREE.Vector3().subVectors(b,a);
-   const line=roundedBox(g,0x302c29,[(a.x+b.x)/2,(a.y+b.y)/2,.055],[d.length(),.012,.012],.004);
-   line.rotation.z=Math.atan2(d.y,d.x);
+   const a=points[i],b=points[i+1];
+   const dx=b[0]-a[0],dy=b[1]-a[1];
+   const line=roundedBox(g,0x514b45,[(a[0]+b[0])/2,(a[1]+b[1])/2,.055],[Math.hypot(dx,dy),.009,.009],.003);
+   line.rotation.z=Math.atan2(dy,dx);
   }
-  for(let i=0;i<2;i++)roundedBox(g,0x49423b,[0,-.2-i*.035,.03],[.34-i*.05,.012,.01],.004);
+  for(let i=0;i<2;i++)roundedBox(g,0x777066,[0,-.17-i*.04,.03],[.3-i*.04,.009,.008],.003);
  }
  return g;
 }
@@ -437,98 +371,111 @@ function sound(freq,duration){
   const osc=ctx.createOscillator(),gain=ctx.createGain();
   osc.connect(gain);gain.connect(ctx.destination);
   osc.type='triangle';osc.frequency.value=freq;
-  gain.gain.setValueAtTime(.08,ctx.currentTime);
+  gain.gain.setValueAtTime(.07,ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);
   osc.start();osc.stop(ctx.currentTime+duration);
  }catch(e){}
-}
-
-function showSpeech(text){
- $('speech').textContent=text;
- $('speech').classList.remove('hidden');
 }
 
 function spawn(){
  currentName=nextName();
  currentItem=makeItem(currentName);
  itemHolder.add(currentItem);
- itemHolder.position.set(0,2.15,3.0);
+ itemHolder.position.set(0,1.85,3.0);
  itemTimer=0;
- $('itemName').textContent=currentName;
- $('itemIcon').textContent=icons[currentName]||'';
- $('itemCard').classList.remove('hidden');
  sound(520,.08);
 }
+
 function clearItem(){
  if(currentItem){itemHolder.remove(currentItem);currentItem=null;}
- $('itemCard').classList.add('hidden');
 }
+
 function finish(){
  if(!active)return;
- active=false;clearItem();
- turning=true;turnProgress=0;shake=.45;
+ active=false;
+ clearItem();
+ turning=true;
+ turnProgress=0;
+ shake=.4;
  sound(110,.4);
  $('result').textContent=`훔친 물건 ${score}개`;
 }
+
 function judge(direction){
  if(!active||!currentItem)return;
  const isCatch=catchItems.has(currentName);
  const correct=(isCatch&&direction==='down')||(!isCatch&&direction==='up');
  if(!correct){finish();return;}
- if(isCatch){score++;$('score').textContent=score;sound(780,.1);}
- else sound(250,.1);
+
+ if(isCatch){
+  score++;
+  $('score').textContent=score;
+  sound(780,.1);
+ }else sound(250,.1);
+
  combo++;
  if(combo%5===0)sound(1000,.18);
  clearItem();
  spawnTimer=Math.max(.22,.65-(60-time)*.006);
 }
 
-// 터치: 손은 양쪽에서 안쪽으로 움직이고, 소매와 손은 함께 움직임
+// 조작
 renderer.domElement.addEventListener('pointerdown',e=>{
  if(!active||!currentItem)return;
- dragging=true;startY=e.clientY;dragY=0;
+ dragging=true;
+ startY=e.clientY;
+ dragY=0;
 });
 renderer.domElement.addEventListener('pointermove',e=>{
  if(!dragging)return;
  dragY=e.clientY-startY;
- const v=THREE.MathUtils.clamp(dragY/150,-1,1);
- armCurrent.right.y=armTargets.right.y-v*.45;
- armCurrent.right.angle=armTargets.right.angle-v*.2;
+ const v=THREE.MathUtils.clamp(dragY/160,-1,1);
+ rightDrag=v;
+ rightArm.rotation.z=rightBase-v*.22;
+ rightArm.rotation.x=-v*.1;
 });
 window.addEventListener('pointerup',()=>{
  if(!dragging)return;
  dragging=false;
  if(Math.abs(dragY)>15)judge(dragY>0?'down':'up');
- armCurrent.right.y=armTargets.right.y;
- armCurrent.right.angle=armTargets.right.angle;
+ rightDrag=0;
 });
 
+// 시작
 function startGame(){
- active=true;time=60;score=0;combo=0;spawnTimer=.3;
- lastName='';repeat=0;turning=false;turnProgress=0;
+ active=true;
+ time=60;score=0;combo=0;spawnTimer=.3;
+ lastName='';repeat=0;
+ turning=false;turnProgress=0;
  victim.rotation.y=Math.PI;
  angryBrows.visible=false;
- armCurrent.left={...armTargets.left};
- armCurrent.right={...armTargets.right};
+ leftArm.rotation.z=leftBase;
+ rightArm.rotation.z=rightBase;
  clearItem();
- $('time').textContent=60;$('score').textContent=0;
+ $('time').textContent=60;
+ $('score').textContent=0;
  $('start').classList.add('hidden');
  $('end').classList.add('hidden');
  $('hint').classList.remove('hidden');
- $('speech').classList.add('hidden');
+ $('speech').classList.remove('hidden');
+ phraseIndex=0;
+ $('speech').textContent='척하면 척!';
 }
 $('startBtn').onclick=startGame;
 $('again').onclick=startGame;
 
+// 애니메이션
 let last=performance.now();
 function animate(now){
  requestAnimationFrame(animate);
- const dt=Math.min((now-last)/1000,.05);last=now;
+ const dt=Math.min((now-last)/1000,.05);
+ last=now;
 
  if(active){
   time-=dt;
   $('time').textContent=Math.max(0,Math.ceil(time));
   if(time<=0)finish();
+
   if(active&&!currentItem){
    spawnTimer-=dt;
    if(spawnTimer<=0)spawn();
@@ -537,25 +484,29 @@ function animate(now){
    currentItem.rotation.y=Math.sin(now*.002)*.035;
    if(itemTimer>=3)finish();
   }
- }
 
- // 왼팔은 와이퍼처럼 반원 궤적으로 내려왔다 올라간다.
- if(active){
-  const wave=Math.sin(now*.0017);
-  armCurrent.left.x=armTargets.left.x+wave*.18;
-  armCurrent.left.y=armTargets.left.y+Math.max(0,wave)*.2;
-  armCurrent.left.angle=armTargets.left.angle+wave*.25;
+  // 두 문구가 일정 간격으로 번갈아 등장
+  phraseIndex+=dt;
+  if(phraseIndex>=2.2){
+   phraseIndex=0;
+   $('speech').textContent=$('speech').textContent==='척하면 척!'?'딱하면 딱!':'척하면 척!';
+  }
+
+  // 왼팔은 어깨 축에 붙어 와이퍼처럼 반원 운동
+  leftSwing=Math.sin(now*.0018)*.42;
+  leftArm.rotation.z=leftBase+leftSwing;
  }
- updateArm(leftArm,armCurrent.left);
- updateArm(rightArm,armCurrent.right);
 
  if(turning){
   turnProgress=Math.min(1,turnProgress+dt*1.8);
   const eased=1-Math.pow(1-turnProgress,3);
   victim.rotation.y=Math.PI*(1-eased);
   angryBrows.visible=true;
+
   if(turnProgress>=1){
    turning=false;
+   $('speech').textContent='지금 뭐 하시는 거예요?';
+   $('speech').classList.remove('hidden');
    $('end').classList.remove('hidden');
    $('hint').classList.add('hidden');
   }
