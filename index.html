@@ -128,10 +128,10 @@ const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x9bd6f4);
 scene.fog=new THREE.Fog(0x9bd6f4,30,70);
 
-// 확대된 자경이 머리가 화면에 들어오도록 카메라 조정
+// 모바일 화면에서 캐릭터와 양팔이 함께 보이도록 조정
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,150);
-camera.position.set(0,8.1,20);
-camera.lookAt(0,7.2,0);
+camera.position.set(0,7,18.5);
+camera.lookAt(0,5.6,0);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
@@ -150,8 +150,8 @@ sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
 scene.add(sun);
 
-function mat(c){
- return new THREE.MeshStandardMaterial({color:c,roughness:.85});
+function mat(c,roughness=.85){
+ return new THREE.MeshStandardMaterial({color:c,roughness});
 }
 function box(p,c,pos,size,r=.1){
  const m=new THREE.Mesh(new RoundedBoxGeometry(size[0],size[1],size[2],5,r),mat(c));
@@ -221,7 +221,7 @@ for(let i=0;i<7;i++){
  scene.add(cloud);
 }
 
-// 자경이: 기존보다 1.5배 확대
+// 자경이
 const victim=new THREE.Group();
 scene.add(victim);
 victim.position.set(0,-.35,-.3);
@@ -235,7 +235,7 @@ victim.add(body);
 box(body,0xf0eee5,[0,0,0],[1.25,1.55,.65],.16);
 capsule(body,0xe8b18f,[0,.88,0],.18,.2);
 
-// 자경이 팔은 얇게
+// 자경이 팔은 슬림하게
 for(const side of [-1,1]){
  box(body,0xf0eee5,[side*.65,.13,0],[.38,1.05,.58],.18);
  ball(body,0xe8b18f,[side*.65,-.42,.02],[.22,.22,.22]);
@@ -257,9 +257,68 @@ victim.add(head);
 
 ball(head,0xe8b18f,[0,0,0],[1.02,1.08,.9]);
 
-// 뒤통수 머리카락만 유지, 앞머리 제거
-const backHair=ball(head,0x211d20,[0,.25,-.34],[1.04,.66,.65]);
-backHair.rotation.z=-.08;
+// 두상에 밀착되는 머리 덮개
+// 둥근 털뭉치가 아니라 두상 표면을 따라 얇게 씌운 형태
+const hairMaterial=mat(0x292326,.72);
+const hairCap=new THREE.Mesh(
+ new THREE.SphereGeometry(1.015,64,48,0,Math.PI*2,0,Math.PI*.68),
+ hairMaterial
+);
+hairCap.position.set(0,.17,-.015);
+hairCap.scale.set(1.035,.91,.97);
+hairCap.castShadow=true;
+hairCap.receiveShadow=true;
+head.add(hairCap);
+
+// 옆머리: 귀 주변과 뒤통수에 붙도록 얇고 납작하게 연결
+const sideHairLeft=ball(head,0x292326,[-.79,-.12,-.02],[.25,.68,.78]);
+sideHairLeft.rotation.z=-.12;
+const sideHairRight=ball(head,0x292326,[.79,-.12,-.02],[.25,.68,.78]);
+sideHairRight.rotation.z=.12;
+
+// 머리 결을 표현하는 얇은 곡선
+function hairLine(points,radius=.012){
+ const curve=new THREE.CatmullRomCurve3(
+  points.map(p=>new THREE.Vector3(...p))
+ );
+ const line=new THREE.Mesh(
+  new THREE.TubeGeometry(curve,40,radius,8,false),
+  mat(0x403638,.9)
+ );
+ line.castShadow=true;
+ head.add(line);
+ return line;
+}
+
+// 정수리에서 뒤통수로 흐르는 결
+hairLine([
+ [-.72,.56,-.48],
+ [-.48,.91,-.32],
+ [-.08,1.04,-.18],
+ [.32,.94,-.31],
+ [.68,.67,-.42]
+],.012);
+
+hairLine([
+ [-.83,.22,-.48],
+ [-.92,.48,-.28],
+ [-.82,.72,-.12],
+ [-.58,.83,-.19]
+],.01);
+
+hairLine([
+ [-.65,-.15,-.67],
+ [-.55,.12,-.83],
+ [-.36,.48,-.84],
+ [-.16,.78,-.72]
+],.012);
+
+hairLine([
+ [.15,1.02,-.32],
+ [.25,.78,-.7],
+ [.32,.42,-.86],
+ [.45,.05,-.83]
+],.012);
 
 // 안경
 const glasses=new THREE.Group();
@@ -285,7 +344,7 @@ for(const side of [-1,1]){
 }
 brows.visible=false;
 
-// 양쪽 플레이어 팔: 넓은 소매와 큰 손
+// 양쪽 플레이어 팔
 function createArm(color){
  const group=new THREE.Group();
  scene.add(group);
@@ -295,7 +354,8 @@ function createArm(color){
  const hand=new THREE.Group();
  group.add(hand);
 
- ball(hand,0xf0c6a5,[0,0,0],[1.05,.9,.9]);
+ // 기존 손 크기의 약 2배
+ ball(hand,0xf0c6a5,[0,0,0],[2.1,1.8,1.8]);
 
  return {group,sleeve,hand};
 }
@@ -303,8 +363,9 @@ function createArm(color){
 const leftArm=createArm(0x527746);
 const rightArm=createArm(0x81998b);
 
-const leftShoulder=new THREE.Vector3(-3.15,4.2,2.8);
-const rightShoulder=new THREE.Vector3(3.15,4.2,2.8);
+// 어깨를 화면 안쪽으로 옮겨 팔이 잘리지 않도록 조정
+const leftShoulder=new THREE.Vector3(-2.05,4.2,2.8);
+const rightShoulder=new THREE.Vector3(2.05,4.2,2.8);
 
 const leftBase=new THREE.Vector3(-.55,2.05,2.55);
 const rightBase=new THREE.Vector3(.55,2.05,2.55);
@@ -322,10 +383,10 @@ function aimArm(arm,shoulder,wrist){
   new THREE.Vector3(0,1,0),direction
  );
 
- // 소매 길이는 어깨부터 손목 직전까지
+ // 넓은 소매가 어깨부터 손까지 이어지도록
  arm.sleeve.scale.set(1,length,1);
 
- // 손은 소매 끝에 겹치도록 배치
+ // 손을 소매 끝과 겹쳐 분리되어 보이지 않게 배치
  arm.hand.position.set(0,length*.5-.05,0);
 }
 
@@ -393,25 +454,15 @@ function makeItem(n){
   capsule(g,0x79532f,[.16,.12,0],.045,.35,[0,0,.8]);
 
  }else if(n==='옥수수'){
-  // 알약형: 길쭉한 노란색 절반과 초록색 절반
-  const yellow=new THREE.Mesh(
-   new THREE.CapsuleGeometry(.22,.48,8,24),
+  // 초록색 부분 없이 노란색 단일 색상의 길쭉한 알약 형태
+  const corn=new THREE.Mesh(
+   new THREE.CapsuleGeometry(.22,.72,12,32),
    mat(0xf4c52e)
   );
-  yellow.rotation.z=Math.PI/2;
-  yellow.scale.set(1,1,1);
-  yellow.castShadow=true;
-  g.add(yellow);
-
-  // 캡슐의 반쪽을 초록색으로 덮어 색이 정확히 반반 나뉘게 함
-  const greenHalf=new THREE.Mesh(
-   new THREE.CylinderGeometry(.22,.22,.48,24,1,false,Math.PI/2,Math.PI),
-   mat(0x4f8745)
-  );
-  greenHalf.rotation.z=Math.PI/2;
-  greenHalf.position.z=.015;
-  greenHalf.castShadow=true;
-  g.add(greenHalf);
+  corn.rotation.z=Math.PI/2;
+  corn.castShadow=true;
+  corn.receiveShadow=true;
+  g.add(corn);
 
  }else if(n==='수배 전단지'){
   box(g,0xf3e8d0,[0,0,0],[.62,.48,.035],.015);
@@ -487,8 +538,6 @@ function spawn(){
  item=makeItem(name);
  holder.add(item);
  holder.position.set(0,1.8,3.1);
-
- // 모든 물건을 기존 대비 3배 크게
  holder.scale.setScalar(3.15);
  itemTimer=0;
 
@@ -555,6 +604,8 @@ renderer.domElement.addEventListener('pointermove',e=>{
  if(!dragging)return;
  dragY=e.clientY-startY;
  const v=THREE.MathUtils.clamp(dragY/180,-1,1);
+
+ // 화면 아래로 드래그하면 손도 아래로 이동
  rightWrist.set(rightBase.x,rightBase.y-v*.65,rightBase.z);
 });
 
