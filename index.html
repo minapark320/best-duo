@@ -95,7 +95,7 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #bd7e36}
     <svg viewBox="0 0 60 48">
      <rect x="19" y="5" width="22" height="38" rx="7" fill="#b9c1c5"/>
      <rect x="19" y="5" width="22" height="19" rx="7" fill="#dce0e1"/>
-     <rect x="19" y="24" width="22" height="19" rx="7" fill="#b9c1c5"/>
+     <rect x="19" y="24" width="22" height="19" fill="#b9c1c5"/>
     </svg>
     <span>라이터</span>
    </div>
@@ -252,119 +252,74 @@ victim.add(head);
 
 ball(head,0xe8b18f,[0,0,0],[1.02,1.08,.9]);
 
-// 밀착형 머리카락
-// 두상 표면을 따라가는 메시를 직접 생성한다.
-// 정면 이마 쪽은 높게 끝나고, 옆과 뒤통수는 더 아래까지 이어진다.
-const hairMaterial=mat(0x30282a,.88);
+// 정수리에만 밀착되는 헤어캡
+// 전체 머리를 덮지 않고 위쪽 일부만 얇게 감싼다.
+const hairMaterial=mat(0x382c2a,.92);
 
-function createFittedHair(){
- const rows=32;
- const cols=96;
- const vertices=[];
- const indices=[];
+const hairGeometry=new THREE.SphereGeometry(
+ 1,48,24,0,Math.PI*2,0,1.28
+);
 
- const rx=1.035;
- const ry=1.095;
- const rz=.925;
+const hairCap=new THREE.Mesh(hairGeometry,hairMaterial);
+hairCap.scale.set(1.025,.76,.915);
+hairCap.position.set(0,.19,0);
+hairCap.castShadow=true;
+hairCap.receiveShadow=true;
+head.add(hairCap);
 
- for(let i=0;i<=rows;i++){
-  const v=i/rows;
-
-  for(let j=0;j<=cols;j++){
-   const phi=(j/cols)*Math.PI*2-Math.PI;
-
-   // 정면(phi=0)은 이마 위에서 끝내고
-   // 옆면은 귀 높이, 뒤통수는 목 가까이까지 감싼다.
-   const frontness=(Math.cos(phi)+1)*.5;
-   const thetaMax=1.02+(1-frontness)*1.12;
-   const theta=.015+v*thetaMax;
-
-   const x=rx*Math.sin(theta)*Math.sin(phi);
-   const y=ry*Math.cos(theta)+.012;
-   const z=rz*Math.sin(theta)*Math.cos(phi);
-
-   vertices.push(x,y,z);
-  }
- }
-
- for(let i=0;i<rows;i++){
-  for(let j=0;j<cols;j++){
-   const a=i*(cols+1)+j;
-   const b=a+1;
-   const c=a+(cols+1);
-   const d=c+1;
-   indices.push(a,c,b,b,c,d);
-  }
- }
-
- const geometry=new THREE.BufferGeometry();
- geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
- geometry.setIndex(indices);
- geometry.computeVertexNormals();
-
- const mesh=new THREE.Mesh(geometry,hairMaterial);
- mesh.castShadow=true;
- mesh.receiveShadow=true;
- head.add(mesh);
-
- return {rx,ry,rz};
-}
-
-const hairShape=createFittedHair();
-
-// 머리카락 결을 두상 표면에 밀착시켜 그린다.
-function hairSurface(phi,theta,offset=.018){
- const {rx,ry,rz}=hairShape;
+// 머리카락 결: 헤어캡 표면에 얇은 선으로 표현
+function hairPoint(theta,phi,offset=.012){
+ const rx=1.025+offset;
+ const ry=.76+offset;
+ const rz=.915+offset;
  return new THREE.Vector3(
-  (rx+offset)*Math.sin(theta)*Math.sin(phi),
-  (ry+offset)*Math.cos(theta),
-  (rz+offset)*Math.sin(theta)*Math.cos(phi)
+  rx*Math.sin(theta)*Math.sin(phi),
+  .19+ry*Math.cos(theta),
+  rz*Math.sin(theta)*Math.cos(phi)
  );
 }
 
-function addHairStrand(points,radius=.009){
+function addHairLine(points,radius=.007){
  const curve=new THREE.CatmullRomCurve3(points);
- const mesh=new THREE.Mesh(
-  new THREE.TubeGeometry(curve,36,radius,6,false),
-  mat(0x493d3d,.95)
+ const line=new THREE.Mesh(
+  new THREE.TubeGeometry(curve,32,radius,5,false),
+  mat(0x55413a,.95)
  );
- mesh.castShadow=true;
- head.add(mesh);
+ line.castShadow=true;
+ head.add(line);
 }
 
-// 정수리에서 옆으로 흐르는 가르마 결
-addHairStrand([
- hairSurface(-1.05,.35),
- hairSurface(-.85,.52),
- hairSurface(-.58,.68),
- hairSurface(-.25,.82),
- hairSurface(.05,.91)
+// 정수리에서 좌우로 자연스럽게 갈라지는 결
+addHairLine([
+ hairPoint(.12,-1.1),
+ hairPoint(.25,-.85),
+ hairPoint(.42,-.55),
+ hairPoint(.58,-.25),
+ hairPoint(.68,.05)
 ]);
 
-addHairStrand([
- hairSurface(-.72,.18),
- hairSurface(-.88,.42),
- hairSurface(-1.05,.68),
- hairSurface(-1.2,.92),
- hairSurface(-1.35,1.15)
+addHairLine([
+ hairPoint(.15,.15),
+ hairPoint(.32,.35),
+ hairPoint(.48,.55),
+ hairPoint(.62,.8),
+ hairPoint(.72,1.05)
 ]);
 
-addHairStrand([
- hairSurface(.18,.22),
- hairSurface(.28,.42),
- hairSurface(.42,.62),
- hairSurface(.58,.8),
- hairSurface(.75,.96)
-]);
+// 양옆으로 흐르는 짧은 결
+addHairLine([
+ hairPoint(.55,-1.35),
+ hairPoint(.72,-1.48),
+ hairPoint(.91,-1.55),
+ hairPoint(1.08,-1.58)
+],.006);
 
-// 뒤통수 쪽으로 이어지는 결
-addHairStrand([
- hairSurface(2.15,.55),
- hairSurface(2.35,.78),
- hairSurface(2.55,1.05),
- hairSurface(2.75,1.32),
- hairSurface(2.95,1.55)
-],.01);
+addHairLine([
+ hairPoint(.55,1.35),
+ hairPoint(.72,1.48),
+ hairPoint(.91,1.55),
+ hairPoint(1.08,1.58)
+],.006);
 
 // 안경
 const glasses=new THREE.Group();
@@ -390,7 +345,7 @@ for(const side of [-1,1]){
 }
 brows.visible=false;
 
-// 플레이어 양팔: 소매와 손은 이전 화면 그대로 유지
+// 플레이어 양팔: 소매와 손은 기존 그대로 유지
 function createArm(color){
  const group=new THREE.Group();
  scene.add(group);
@@ -495,7 +450,7 @@ function makeItem(n){
   capsule(g,0x79532f,[.16,.12,0],.045,.35,[0,0,.8]);
 
  }else if(n==='옥수수'){
-  // 초록색 없는 노란색 단일 캡슐
+  // 길쭉한 노란 알약형 몸통
   const corn=new THREE.Mesh(
    new THREE.CapsuleGeometry(.22,.72,12,32),
    mat(0xf4c52e)
@@ -504,6 +459,17 @@ function makeItem(n){
   corn.castShadow=true;
   corn.receiveShadow=true;
   g.add(corn);
+
+  // 한쪽 끝에 짧고 작은 초록색 부분
+  const greenTip=new THREE.Mesh(
+   new THREE.CapsuleGeometry(.17,.08,8,20),
+   mat(0x4f8745)
+  );
+  greenTip.rotation.z=Math.PI/2;
+  greenTip.position.set(-.48,0,.015);
+  greenTip.castShadow=true;
+  greenTip.receiveShadow=true;
+  g.add(greenTip);
 
  }else if(n==='수배 전단지'){
   box(g,0xf3e8d0,[0,0,0],[.62,.48,.035],.015);
