@@ -10,7 +10,7 @@
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#8cccf0;font-family:Arial,"Noto Sans KR",sans-serif}
 #game{position:fixed;inset:0}
 canvas{display:block;width:100%;height:100%;touch-action:none}
-.hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:2}
+.hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;pointer-events:none;z-index:2}
 .logo,.stat{background:#293c36e8;color:white;border-radius:14px;padding:9px 12px;box-shadow:0 3px 12px #263b3540}
 .logo{font-weight:900;font-size:17px}
 .stats{display:flex;gap:6px}
@@ -18,10 +18,13 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 .stat small{display:block;font-size:9px;letter-spacing:1px;color:#d9e8dd}
 .stat strong{font-size:21px}
 .overlay{position:fixed;inset:0;display:grid;place-items:center;background:#172b2966;padding:20px;z-index:5}
-.panel{width:min(390px,100%);background:#fff8e9;color:#293a32;border-radius:24px;padding:26px;text-align:center;box-shadow:0 15px 45px #243b3c66}
+.panel{width:min(390px,100%);background:#fff8e9;color:#293a32;border-radius:24px;padding:28px 24px;text-align:center;box-shadow:0 15px 45px #243b3c66}
 .panel h1{font-size:clamp(27px,7vw,38px);margin:0 0 12px}
 .panel p{line-height:1.7}
 .panel .result{font-size:25px;font-weight:900;margin:20px 0}
+.intro{font-size:clamp(25px,7vw,35px);font-weight:1000;line-height:1.3;margin:0 0 15px;color:#a34b2e}
+.intro-sub{font-weight:800;font-size:16px;line-height:1.7}
+.intro-small{font-size:13px;color:#786c5b;margin:18px 0}
 button{background:#e9a64c;color:#34271c;border:0;border-radius:14px;padding:14px 32px;font-size:17px;font-weight:900}
 .hidden{display:none!important}
 #hint{position:fixed;bottom:22px;left:0;right:0;text-align:center;color:white;font-weight:800;text-shadow:0 2px 5px #263b35;pointer-events:none;z-index:2;font-size:13px}
@@ -42,7 +45,15 @@ button{background:#e9a64c;color:#34271c;border:0;border-radius:14px;padding:14px
 <div class="overlay" id="start">
   <div class="panel">
     <h1>환상의 짝꿍</h1>
-    <p>덕형과 한길의 비밀 작전!<br>자경에게 들키지 않고 물건을 훔쳐라!</p>
+    <div class="intro">나는 최고의<br>소매치기!</div>
+    <div class="intro-sub">
+      쥐도 새도 모르게 지갑만 쏙!<br>
+      여유로운 행인의 주머니를 털어라!
+    </div>
+    <p class="intro-small">
+      덕형과 한길의 완벽한 팀워크.<br>
+      자경이에게 들키지 않고 작전을 성공시켜라!
+    </p>
     <button id="startBtn">작전 시작</button>
   </div>
 </div>
@@ -64,13 +75,17 @@ button{background:#e9a64c;color:#34271c;border:0;border-radius:14px;padding:14px
 import * as THREE from 'three';
 
 const $=id=>document.getElementById(id);
+
+// ======================================
+// 기본 장면
+// ======================================
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x91d0f4);
-scene.fog=new THREE.Fog(0x91d0f4,25,58);
+scene.fog=new THREE.Fog(0x91d0f4,28,60);
 
-const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,100);
-camera.position.set(0,3.2,8.7);
-camera.lookAt(0,2.3,0);
+const camera=new THREE.PerspectiveCamera(37,innerWidth/innerHeight,.1,100);
+camera.position.set(0,3.1,6.9);
+camera.lookAt(0,2.35,.1);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
@@ -84,54 +99,104 @@ $('game').appendChild(renderer.domElement);
 
 // 조명
 scene.add(new THREE.HemisphereLight(0xeaf8ff,0x8b805d,2));
+
 const sun=new THREE.DirectionalLight(0xffefcf,3);
 sun.position.set(-5,12,8);
 sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
 scene.add(sun);
 
-// 도형 도우미
-function mat(c,r=.85){
-  return new THREE.MeshStandardMaterial({color:c,roughness:r});
+// ======================================
+// 도형과 재질 도우미
+// ======================================
+function mat(color,roughness=.85){
+  return new THREE.MeshStandardMaterial({color,roughness});
 }
-function mesh(p,g,c,pos,scale=[1,1,1]){
-  const m=new THREE.Mesh(g,mat(c));
+
+function addMesh(parent,geometry,color,pos,scale=[1,1,1]){
+  const m=new THREE.Mesh(geometry,mat(color));
   m.position.set(...pos);
   m.scale.set(...scale);
   m.castShadow=true;
   m.receiveShadow=true;
-  p.add(m);
-  return m;
-}
-function ball(p,c,pos,scale=[1,1,1],r=.5){
-  return mesh(p,new THREE.SphereGeometry(r,24,18),c,pos,scale);
-}
-function capsule(p,c,pos,r=.2,len=.5,rot=[0,0,0]){
-  const m=mesh(p,new THREE.CapsuleGeometry(r,len,5,16),c,pos);
-  m.rotation.set(...rot);
-  return m;
-}
-function box(p,c,pos,size,rot=[0,0,0]){
-  const m=mesh(p,new THREE.BoxGeometry(...size),c,pos);
-  m.rotation.set(...rot);
+  parent.add(m);
   return m;
 }
 
+function ball(parent,color,pos,scale=[1,1,1],radius=.5){
+  return addMesh(
+    parent,
+    new THREE.SphereGeometry(radius,24,18),
+    color,pos,scale
+  );
+}
+
+function box(parent,color,pos,size,bevel=.06){
+  const m=addMesh(
+    parent,
+    new THREE.BoxGeometry(...size),
+    color,pos
+  );
+  return m;
+}
+
+function capsule(parent,color,pos,radius=.18,length=.5,rotation=[0,0,0]){
+  const m=addMesh(
+    parent,
+    new THREE.CapsuleGeometry(radius,length,6,16),
+    color,pos
+  );
+  m.rotation.set(...rotation);
+  return m;
+}
+
+function roundedLimb(parent,color,a,b,radius){
+  const start=new THREE.Vector3(...a);
+  const end=new THREE.Vector3(...b);
+  const dir=new THREE.Vector3().subVectors(end,start);
+  const length=dir.length();
+
+  const m=new THREE.Mesh(
+    new THREE.CapsuleGeometry(radius,length,6,16),
+    mat(color)
+  );
+
+  m.position.copy(start).add(end).multiplyScalar(.5);
+  m.quaternion.setFromUnitVectors(
+    new THREE.Vector3(0,1,0),
+    dir.normalize()
+  );
+  m.castShadow=true;
+  m.receiveShadow=true;
+  parent.add(m);
+  return m;
+}
+
+// ======================================
 // 시골 비포장도로 배경
-const ground=mesh(scene,new THREE.PlaneGeometry(100,100),0x8da96b,[0,-.15,-5]);
+// ======================================
+const ground=addMesh(
+  scene,new THREE.PlaneGeometry(100,100),
+  0x8da96b,[0,-.15,-5]
+);
 ground.rotation.x=-Math.PI/2;
 
-const road=mesh(scene,new THREE.PlaneGeometry(7,65),0xb9956d,[0,-.08,-12]);
+const road=addMesh(
+  scene,new THREE.PlaneGeometry(7,65),
+  0xb9956d,[0,-.08,-12]
+);
 road.rotation.x=-Math.PI/2;
 road.position.y=-.07;
 
-// 흙길 자갈
+// 자갈
 for(let i=0;i<65;i++){
-  const x=(Math.random()-.5)*5.8;
-  const z=-30+Math.random()*35;
-  const size=.035+Math.random()*.1;
-  ball(scene,Math.random()>.5?0x8d806c:0xb7a18a,
-    [x,-.015,z],[size*1.5,size*.4,size],size);
+  const s=.035+Math.random()*.1;
+  const stone=addMesh(
+    scene,new THREE.DodecahedronGeometry(s),
+    Math.random()>.5?0x8d806c:0xb7a18a,
+    [(Math.random()-.5)*5.8,-.015,-30+Math.random()*35],
+    [1.5,.4,1]
+  );
 }
 
 // 길가 풀
@@ -139,8 +204,10 @@ for(let i=0;i<70;i++){
   const side=Math.random()>.5?1:-1;
   const x=side*(4+Math.random()*7);
   const z=-28+Math.random()*35;
-  capsule(scene,0x547b45,[x,.22,z],.035,.35,
+
+  capsule(scene,0x547b45,[x,.2,z],.035,.35,
     [0,0,(Math.random()-.5)*.8]);
+
   if(i%5===0){
     ball(scene,0xe8d99b,[x,.45,z],[.08,.08,.08],.08);
   }
@@ -149,15 +216,16 @@ for(let i=0;i<70;i++){
 // 울타리
 for(const side of [-1,1]){
   for(let i=0;i<10;i++){
-    const z=-27+i*3;
-    box(scene,0x806044,[side*5.2,.55,z],[.16,1.1,.16]);
+    box(scene,0x806044,[side*5.2,.55,-27+i*3],
+      [.16,1.1,.16]);
   }
   for(const y of [.45,.85]){
-    box(scene,0x9a7955,[side*5.2,y,-13],[.13,.13,30]);
+    box(scene,0x9a7955,[side*5.2,y,-13],
+      [.13,.13,30]);
   }
 }
 
-// 멀리 언덕
+// 언덕
 for(let i=0;i<12;i++){
   const h=2+Math.random()*3;
   ball(scene,0x739a70,[-22+i*4,h*.25,-27],
@@ -166,158 +234,210 @@ for(let i=0;i<12;i++){
 
 // 구름
 for(let i=0;i<8;i++){
-  const g=new THREE.Group();
-  ball(g,0xfaf8ed,[0,0,0],[1.5,.55,.7]);
-  ball(g,0xfaf8ed,[-.8,-.1,.05],[.85,.42,.6]);
-  ball(g,0xfaf8ed,[.85,-.1,0],[.9,.45,.6]);
-  g.position.set(-14+i*4,9+(i%3),-20);
-  scene.add(g);
+  const cloud=new THREE.Group();
+  ball(cloud,0xfaf8ed,[0,0,0],[1.5,.55,.7]);
+  ball(cloud,0xfaf8ed,[-.8,-.1,.05],[.85,.42,.6]);
+  ball(cloud,0xfaf8ed,[.85,-.1,0],[.9,.45,.6]);
+  cloud.position.set(-14+i*4,9+(i%3),-20);
+  scene.add(cloud);
 }
 
-// ============================
-// 자경이 캐릭터
-// ============================
+// ======================================
+// 자경이
+// 참고 이미지 기준: 단순한 3D 인체
+// ======================================
 const victim=new THREE.Group();
 scene.add(victim);
-victim.position.set(0,0,-.6);
+victim.position.set(0,0,-.15);
+victim.scale.setScalar(1.25);
 
 // 하체
 const lower=new THREE.Group();
-lower.position.y=.72;
+lower.position.y=.78;
 victim.add(lower);
 
-ball(lower,0x554b40,[0,-.12,0],[.53,.48,.38],.55);
+// 바지 골반
+box(lower,0x514237,[0,-.08,0],[1.05,.62,.65],.1);
 
-for(const x of [-.29,.29]){
+// 바지 다리
+for(const side of [-1,1]){
   const leg=new THREE.Group();
-  leg.position.set(x,-.25,0);
+  leg.position.set(side*.27,-.3,0);
   lower.add(leg);
 
-  capsule(leg,0x49443d,[0,-.43,0],.19,.53);
-  ball(leg,0x49443d,[0,-.77,0],[.19,.19,.19],.19);
-  capsule(leg,0x49443d,[0,-1.08,0],.17,.48);
-  ball(leg,0x38332e,[0,-1.39,.12],[.23,.13,.36],.25);
+  roundedLimb(leg,0x514237,[0,0,0],[0,-.92,0],.19);
+  ball(leg,0x40362e,[0,-.98,.12],[.22,.12,.34],.25);
 }
 
-// 상체 피벗
+// 상체 회전 그룹
 const torso=new THREE.Group();
-torso.position.y=1.45;
+torso.position.y=1.5;
 victim.add(torso);
 
-// 셔츠 몸통
-capsule(torso,0xf0eee5,[0,0,0],.48,.72);
-ball(torso,0xf0eee5,[0,-.35,0],[.51,.48,.4],.5);
+// 흰 셔츠 몸통
+box(torso,0xf0eee5,[0,0,0],[1.48,1.55,.78],.12);
 
-// 어깨
-for(const x of [-.48,.48]){
-  ball(torso,0xf0eee5,[x,.34,0],[.3,.29,.34],.35);
+// 어깨 라인
+for(const side of [-1,1]){
+  ball(torso,0xf0eee5,[side*.69,.48,0],[.28,.3,.36],.35);
 }
 
 // 목
-capsule(torso,0xe8b18f,[0,.78,0],.17,.24);
+capsule(torso,0xe8b18f,[0,.89,0],.17,.24);
 
-// 팔과 관절
-const arms=[];
+// 소매와 팔
+// 팔이 몸통 뒤에 가려지지 않도록 바깥쪽으로 넓게 배치
+const victimArms=[];
+
 for(const side of [-1,1]){
   const arm=new THREE.Group();
-  arm.position.set(side*.53,.36,0);
+  arm.position.set(side*.73,.42,.02);
   torso.add(arm);
 
-  ball(arm,0xf0eee5,[0,-.08,0],[.27,.28,.29],.3);
-  capsule(arm,0xf0eee5,[side*.08,-.39,0],.17,.42,
-    [0,0,-side*.08]);
+  // 짧은 흰색 소매
+  capsule(
+    arm,0xf0eee5,
+    [side*.10,-.12,0],
+    .23,.30,
+    [0,0,-side*.12]
+  );
 
+  // 어깨 관절
+  ball(arm,0xf0eee5,[side*.12,-.26,0],
+    [.22,.22,.22],.22);
+
+  // 팔꿈치 위치
   const elbow=new THREE.Group();
-  elbow.position.set(side*.12,-.65,0);
+  elbow.position.set(side*.17,-.53,0);
   arm.add(elbow);
 
-  ball(elbow,0xf0eee5,[0,0,0],[.17,.17,.17],.17);
-  capsule(elbow,0xf0eee5,[0,-.31,.01],.15,.38);
+  // 피부색 위팔
+  capsule(elbow,0xe8b18f,[side*.015,-.30,.01],
+    .145,.34,[0,0,-side*.02]);
 
+  // 팔꿈치
+  ball(elbow,0xe8b18f,[side*.02,-.59,.01],
+    [.15,.15,.15],.15);
+
+  // 아래팔
+  capsule(elbow,0xe8b18f,[side*.02,-.91,.02],
+    .15,.34);
+
+  // 손목과 손
   const wrist=new THREE.Group();
-  wrist.position.set(0,-.62,.02);
+  wrist.position.set(side*.02,-1.19,.03);
   elbow.add(wrist);
 
-  ball(wrist,0xe8b18f,[0,0,0],[.13,.13,.13],.13);
-  ball(wrist,0xe8b18f,[0,-.13,.03],[.16,.19,.13],.2);
+  ball(wrist,0xe8b18f,[0,0,0],[.15,.15,.15],.15);
+  ball(wrist,0xe8b18f,[0,-.15,.03],[.17,.2,.13],.2);
 
-  for(let i=0;i<4;i++){
+  for(let f=0;f<4;f++){
     capsule(wrist,0xe8b18f,
-      [-.105+i*.07,-.27,.07],.035,.12,[0,0,-.08]);
+      [-.1+f*.065,-.31,.04],
+      .035,.11
+    );
   }
-  arms.push(arm);
+
+  victimArms.push(arm);
 }
 
 // 멜빵
-for(const x of [-.31,.31]){
-  capsule(torso,0x795338,[x,.02,.39],.065,.68,
-    [0,0,-x*.55]);
-  box(torso,0xa27a50,[x,.39,.39],[.13,.12,.055]);
-  box(torso,0x60452f,[x,.39,.425],[.07,.07,.025]);
+for(const side of [-1,1]){
+  const strap=box(
+    torso,0x795338,
+    [side*.36,.02,.405],
+    [.14,1.02,.07]
+  );
+  strap.rotation.z=-side*.2;
+
+  box(torso,0x98704b,
+    [side*.36,.48,.45],[.18,.15,.045]);
 }
-box(torso,0x795338,[0,-.43,.35],[.2,.1,.05]);
+
+// 뒤쪽 V자 멜빵 연결
+const backStrap=new THREE.Group();
+backStrap.position.set(0,-.08,-.405);
+torso.add(backStrap);
+
+const strapLeft=box(backStrap,0x795338,
+  [-.18,.1,0],[.13,.72,.055]);
+strapLeft.rotation.z=-.45;
+
+const strapRight=box(backStrap,0x795338,
+  [.18,.1,0],[.13,.72,.055]);
+strapRight.rotation.z=.45;
+
+box(backStrap,0x795338,[0,-.28,0],[.15,.22,.055]);
+
+// 앞쪽 멜빵 연결부
+box(torso,0x795338,[0,-.48,.405],[.18,.12,.06]);
 
 // 셔츠 깃
 for(const side of [-1,1]){
-  box(torso,0xe5e0d5,[side*.1,.68,.27],
-    [.17,.18,.045],[0,0,side*.35]);
+  const collar=box(torso,0xe4dfd5,
+    [side*.12,.76,.4],[.22,.19,.05]);
+  collar.rotation.z=side*.28;
 }
 
-// 머리
+// ======================================
+// 머리와 머리카락
+// ======================================
 const head=new THREE.Group();
-head.position.set(0,1.12,.02);
+head.position.set(0,1.12,.01);
 torso.add(head);
 
-ball(head,0xe8b18f,[0,0,0],[.58,.68,.53],.65);
+// 얼굴
+ball(head,0xe8b18f,[0,0,0],[.58,.67,.53],.65);
 
 // 뒤통수 머리카락
-ball(head,0x211d20,[0,.19,-.12],[.62,.56,.55],.65);
-ball(head,0x211d20,[0,.49,-.06],[.55,.23,.47],.55);
+ball(head,0x211d20,[0,.18,-.13],[.62,.55,.55],.65);
+ball(head,0x211d20,[0,.47,-.06],[.55,.24,.47],.55);
 
-// 6:4 가르마 앞머리
-ball(head,0x211d20,[-.19,.39,.28],[.34,.2,.19],.3);
-ball(head,0x211d20,[.12,.34,.3],[.3,.16,.15],.3);
-ball(head,0x211d20,[-.39,.16,.2],[.15,.35,.2],.2);
+// 앞머리
+ball(head,0x211d20,[-.2,.4,.28],[.35,.22,.18],.3);
+ball(head,0x211d20,[.13,.34,.3],[.3,.17,.16],.3);
+
+// 옆머리
+ball(head,0x211d20,[-.42,.13,.18],[.17,.36,.2],.22);
+ball(head,0x211d20,[.42,.13,.18],[.17,.36,.2],.22);
 
 // 귀
-for(const x of [-.58,.58]){
-  ball(head,0xe8b18f,[x,-.02,0],[.13,.18,.13],.18);
+for(const side of [-1,1]){
+  ball(head,0xe8b18f,[side*.58,-.04,0],
+    [.13,.18,.13],.18);
 }
 
 // 코
-ball(head,0xd99d7c,[0,-.08,.51],[.075,.09,.07],.09);
+ball(head,0xd99d7c,[0,-.08,.51],[.07,.09,.07],.09);
 
 // 눈
-for(const x of [-.2,.2]){
-  ball(head,0x292321,[x,.08,.49],[.045,.065,.025],.06);
+for(const side of [-1,1]){
+  ball(head,0x292321,[side*.2,.08,.49],
+    [.04,.06,.025],.06);
 }
 
 // 안경
 const glasses=new THREE.Group();
 head.add(glasses);
 
-for(const x of [-.21,.21]){
+for(const side of [-1,1]){
   const ring=new THREE.Mesh(
     new THREE.TorusGeometry(.17,.025,8,24),
     mat(0x292727)
   );
-  ring.position.set(x,.08,.52);
+  ring.position.set(side*.21,.08,.52);
   glasses.add(ring);
 }
 box(glasses,0x292727,[0,.08,.53],[.12,.035,.035]);
-
-for(const side of [-1,1]){
-  box(glasses,0x292727,[side*.4,.08,.4],
-    [.12,.025,.025],[0,side*.2,0]);
-}
 
 // 화난 눈썹
 const angry=new THREE.Group();
 head.add(angry);
 
-for(const x of [-.21,.21]){
-  box(angry,0x29201e,[x,.29,.53],
-    [.22,.045,.035],[0,0,x<0?-.3:.3]);
+for(const side of [-1,1]){
+  const brow=box(angry,0x29201e,
+    [side*.21,.29,.53],[.22,.045,.035]);
+  brow.rotation.z=side*.3;
 }
 angry.visible=false;
 
@@ -326,76 +446,102 @@ const mouth=box(head,0x74443c,[0,-.23,.51],[.15,.025,.025]);
 
 // 책
 const book=new THREE.Group();
-book.position.set(.54,.0,.27);
+book.position.set(.57,-.12,.35);
 book.rotation.set(-.12,.12,-.15);
 torso.add(book);
 
-box(book,0x70432f,[0,0,0],[.43,.57,.12]);
-box(book,0xe9d9b9,[0,0,.07],[.37,.51,.025]);
-box(book,0x70432f,[-.13,0,.09],[.035,.5,.025]);
+box(book,0x70432f,[0,0,0],[.43,.62,.12]);
+box(book,0xe9d9b9,[0,0,.07],[.37,.55,.025]);
+box(book,0x70432f,[-.13,0,.09],[.035,.54,.025]);
 
-// ============================
+// ======================================
 // 덕형의 왼쪽 팔
-// ============================
+// 화면 가장자리에서 길게 보이도록 배치
+// ======================================
 const leftArm=new THREE.Group();
-leftArm.position.set(-2.2,.9,2);
+leftArm.position.set(-2.0,1.35,2.5);
 scene.add(leftArm);
 
-capsule(leftArm,0x59734e,[0,.48,0],.28,.85,[0,0,-.5]);
-capsule(leftArm,0x59734e,[.35,-.05,0],.23,.65,[0,0,.8]);
+// 상완
+capsule(leftArm,0x59734e,[0,.65,0],.25,.75);
 
+// 팔꿈치
+ball(leftArm,0x59734e,[0,.05,0],[.25,.25,.25],.25);
+
+// 아래팔
+capsule(leftArm,0x59734e,[.15,-.38,0],.22,.55,
+  [0,0,-.3]);
+
+// 손목
 const leftHand=new THREE.Group();
-leftHand.position.set(.7,-.27,.05);
+leftHand.position.set(.28,-.78,.08);
 leftArm.add(leftHand);
 
-ball(leftHand,0xf1c19d,[0,0,0],[.25,.19,.18],.35);
+ball(leftHand,0xf1c19d,[0,0,0],[.23,.2,.17],.3);
 for(let i=0;i<4;i++){
-  capsule(leftHand,0xf1c19d,[.19,-.12+i*.08,.02],
-    .055,.13,[0,0,-.4]);
+  capsule(leftHand,0xf1c19d,
+    [.14,-.1+i*.07,.02],.045,.12);
 }
 
-// ============================
-// 한길의 오른쪽 팔과 손
-// ============================
+// ======================================
+// 한길의 오른쪽 팔
+// ======================================
 const rightArm=new THREE.Group();
-rightArm.position.set(2.1,.3,2.5);
+rightArm.position.set(2.0,.95,2.8);
 scene.add(rightArm);
 
-capsule(rightArm,0x84968b,[0,.35,0],.3,1.05,[0,0,.35]);
-capsule(rightArm,0x84968b,[-.35,-.28,0],.24,.65,[0,0,-.8]);
+// 팔은 고정
+capsule(rightArm,0x84968b,[0,.55,0],.27,.85);
+ball(rightArm,0x84968b,[0,-.02,0],[.27,.27,.27],.27);
+capsule(rightArm,0x84968b,[-.18,-.43,0],.23,.55,
+  [0,0,.3]);
 
+// 손만 움직임
 const hand=new THREE.Group();
+hand.position.set(-.35,-.78,.12);
 rightArm.add(hand);
+const handBaseY=hand.position.y;
 
-const handBaseY=-.72;
-hand.position.set(-.63,handBaseY,.15);
-
-ball(hand,0xf1c19d,[0,0,0],[.3,.22,.17],.4);
+ball(hand,0xf1c19d,[0,0,0],[.27,.22,.17],.35);
 for(let i=0;i<4;i++){
-  capsule(hand,0xf1c19d,[-.18,-.14+i*.09,.02],
-    .06,.18,[0,0,-.3]);
+  capsule(hand,0xf1c19d,
+    [-.17,-.14+i*.08,.02],.055,.15);
 }
-capsule(hand,0xf1c19d,[.17,-.16,.05],.065,.18,[0,0,.7]);
+capsule(hand,0xf1c19d,[.16,-.15,.05],.06,.16,
+  [0,0,.7]);
 
-// ============================
+// ======================================
 // 아이템
-// ============================
+// ======================================
 const holder=new THREE.Group();
-holder.position.set(-1.45,1.25,2.5);
+holder.position.set(-1.25,1.65,2.4);
 scene.add(holder);
 
 const itemNames=[
   '지갑','돈','담뱃갑','모자','라이터',
   '돌','벽돌','막대기','수배 전단지','옥수수'
 ];
-const catchItems=new Set(['지갑','돈','담뱃갑','모자','라이터']);
 
-let currentItem=null,currentName='';
-let itemTimer=0,spawnTimer=0;
-let score=0,time=60,active=false,combo=0;
-let lastName='',repeat=0;
-let dragging=false,startY=0,dragY=0;
-let turning=false,turnProgress=0,shake=0;
+const catchItems=new Set([
+  '지갑','돈','담뱃갑','모자','라이터'
+]);
+
+let currentItem=null;
+let currentName='';
+let itemTimer=0;
+let spawnTimer=0;
+let score=0;
+let time=60;
+let active=false;
+let combo=0;
+let lastName='';
+let repeat=0;
+let dragging=false;
+let startY=0;
+let dragY=0;
+let turning=false;
+let turnProgress=0;
+let shake=0;
 
 function makeItem(name){
   const g=new THREE.Group();
@@ -416,9 +562,9 @@ function makeItem(name){
     box(g,0xeeeeea,[0,-.13,.12],[.42,.18,.025]);
   }
   else if(name==='모자'){
-    mesh(g,new THREE.CylinderGeometry(.28,.35,.28,20),
+    addMesh(g,new THREE.CylinderGeometry(.28,.35,.28,20),
       0x284455,[0,.08,0]);
-    mesh(g,new THREE.CylinderGeometry(.48,.48,.07,24),
+    addMesh(g,new THREE.CylinderGeometry(.48,.48,.07,24),
       0x284455,[0,-.08,.04]);
   }
   else if(name==='라이터'){
@@ -427,27 +573,26 @@ function makeItem(name){
     box(g,0xe1e5e7,[0,-.05,.105],[.22,.2,.012]);
   }
   else if(name==='돌'){
-    mesh(g,new THREE.DodecahedronGeometry(.34),0x747b79,
-      [0,0,0],[1.2,.9,1]);
+    addMesh(g,new THREE.DodecahedronGeometry(.34),
+      0x747b79,[0,0,0],[1.2,.9,1]);
   }
   else if(name==='벽돌'){
     box(g,0xa64e3d,[0,0,0],[.7,.4,.36]);
   }
   else if(name==='막대기'){
-    capsule(g,0x79532f,[0,0,0],.09,.9,[0,0,Math.PI/2]);
+    capsule(g,0x79532f,[0,0,0],.09,.9,
+      [0,0,Math.PI/2]);
   }
   else if(name==='옥수수'){
-    capsule(g,0xe8c64e,[0,0,0],.18,.55,[0,0,Math.PI/2]);
+    capsule(g,0xe8c64e,[0,0,0],.18,.55,
+      [0,0,Math.PI/2]);
     capsule(g,0x64864b,[-.23,-.12,0],.09,.4,[0,0,.5]);
     capsule(g,0x64864b,[.23,-.12,0],.09,.4,[0,0,-.5]);
-    ball(g,0x64864b,[-.34,-.12,0],[.12,.06,.07],.13);
-    ball(g,0x64864b,[.34,-.12,0],[.12,.06,.07],.13);
   }
   else if(name==='수배 전단지'){
     box(g,0xf3e8d0,[0,0,0],[.72,.56,.04]);
     box(g,0xb34438,[0,.2,.03],[.58,.08,.02]);
 
-    // 얼굴 윤곽
     const face=new THREE.Mesh(
       new THREE.CircleGeometry(.13,20),
       mat(0xe1d3b8)
@@ -455,7 +600,6 @@ function makeItem(name){
     face.position.set(0,-.04,.04);
     g.add(face);
 
-    // 눈, 코, 입
     for(const x of [-.045,.045]){
       box(g,0x292522,[x,0,.065],[.025,.025,.012]);
     }
@@ -472,7 +616,10 @@ function nextName(){
   }while(n===lastName&&repeat>=2);
 
   if(n===lastName)repeat++;
-  else{lastName=n;repeat=1}
+  else{
+    lastName=n;
+    repeat=1;
+  }
   return n;
 }
 
@@ -483,6 +630,7 @@ function sound(freq,duration){
 
     const osc=ctx.createOscillator();
     const gain=ctx.createGain();
+
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.type='triangle';
@@ -551,9 +699,9 @@ function judge(direction){
   spawnTimer=Math.max(.22,.65-(60-time)*.006);
 }
 
-// ============================
-// 터치 및 마우스 조작
-// ============================
+// ======================================
+// 드래그 조작
+// ======================================
 renderer.domElement.addEventListener('pointerdown',e=>{
   if(!active||!currentItem)return;
   dragging=true;
@@ -579,9 +727,9 @@ window.addEventListener('pointerup',()=>{
   hand.position.y=handBaseY;
 });
 
-// ============================
+// ======================================
 // 게임 시작
-// ============================
+// ======================================
 function startGame(){
   active=true;
   time=60;
@@ -592,9 +740,12 @@ function startGame(){
   repeat=0;
   turning=false;
   turnProgress=0;
+
   victim.rotation.y=Math.PI;
-  head.rotation.y=0;
+  torso.rotation.set(0,0,0);
+  head.rotation.set(0,0,0);
   angry.visible=false;
+
   clearItem();
 
   $('time').textContent=60;
@@ -607,10 +758,14 @@ function startGame(){
 $('startBtn').onclick=startGame;
 $('again').onclick=startGame;
 
+// ======================================
+// 애니메이션
+// ======================================
 let last=performance.now();
 
 function animate(now){
   requestAnimationFrame(animate);
+
   const dt=Math.min((now-last)/1000,.05);
   last=now;
 
@@ -633,11 +788,14 @@ function animate(now){
     }
   }
 
-  // 자경이가 실제로 몸 전체를 돌림
+  // 자경이가 몸을 돌려 플레이어를 바라봄
   if(turning){
     turnProgress=Math.min(1,turnProgress+dt*1.8);
     const eased=1-Math.pow(1-turnProgress,3);
+
     victim.rotation.y=Math.PI*(1-eased);
+    torso.rotation.x=-.08*eased;
+    head.rotation.x=-.1*eased;
 
     if(turnProgress>=1){
       turning=false;
@@ -646,12 +804,13 @@ function animate(now){
     }
   }
 
-  // 손만 원위치로 복귀
+  // 손 복귀
   if(!dragging){
     hand.position.y+=(handBaseY-hand.position.y)*
       Math.min(1,dt*12);
   }
 
+  // 카메라 흔들림
   if(shake>0){
     shake=Math.max(0,shake-dt);
     camera.position.x=(Math.random()-.5)*shake*.1;
@@ -664,6 +823,7 @@ function animate(now){
 
 requestAnimationFrame(animate);
 
+// 화면 크기 대응
 addEventListener('resize',()=>{
   camera.aspect=innerWidth/innerHeight;
   camera.updateProjectionMatrix();
