@@ -1,58 +1,51 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>BEST DUO</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#c8cbb7;font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:#fff}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial,sans-serif;background:#87c9ed}
 #game{position:fixed;inset:0}
-canvas{display:block;width:100%;height:100%;touch-action:none}
-.hud{position:fixed;inset:0;pointer-events:none;padding:12px;display:flex;flex-direction:column}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.brand,.stat{background:#202821c9;border:1px solid #ffffff20;border-radius:12px;padding:7px 10px;backdrop-filter:blur(8px)}
-.brand b{font-size:16px;letter-spacing:-.6px}
-.stats{display:flex;gap:5px}
-.stat{text-align:center;min-width:52px;padding:6px 9px}
-.stat small{display:block;color:#c6cfbd;font-size:8px;letter-spacing:1px}
-.stat strong{font-size:18px;font-variant-numeric:tabular-nums}
-.overlay{position:fixed;inset:0;display:grid;place-items:center;background:#10181177;backdrop-filter:blur(5px);padding:20px}
-.panel{width:min(420px,100%);background:#202821f5;border:1px solid #ffffff30;border-radius:24px;padding:25px;text-align:center;box-shadow:0 24px 70px #10181166}
-.panel h1{font-size:clamp(34px,9vw,50px);margin:0 0 8px;letter-spacing:-2px}
-.panel p{color:#d5ddce;line-height:1.65;margin:8px 0 18px}
-button{border:0;border-radius:14px;background:#d8ed9d;color:#20291c;font-weight:900;font-size:17px;padding:14px 25px;min-width:170px}
-.sub{font-size:11px!important;color:#aeb9aa!important;margin-top:14px!important}
-.hidden{display:none!important}
+canvas{width:100%;height:100%;display:block;touch-action:none}
+.hud{position:fixed;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;pointer-events:none}
+.logo,.stat{background:#263b35dd;color:white;border-radius:15px;padding:9px 13px;box-shadow:0 3px 8px #263b3540}
+.logo{font-weight:900;font-size:17px}
+.stats{display:flex;gap:7px}
+.stat{text-align:center;min-width:58px}
+.stat small{display:block;font-size:9px;letter-spacing:1px;color:#d4e4d7}
+.stat strong{font-size:21px}
+.overlay{position:fixed;inset:0;display:grid;place-items:center;background:#182d3066;padding:20px}
+.panel{width:min(380px,100%);background:#fff8e9;color:#293a32;border-radius:25px;padding:26px;text-align:center;box-shadow:0 15px 40px #243b3c55}
+.panel h1{font-size:38px;margin:0 0 8px}
+.panel p{line-height:1.6}
+button{background:#e9a64c;color:#34271c;border:0;border-radius:14px;padding:14px 34px;font-size:18px;font-weight:900}
+.hidden{display:none}
 </style>
 </head>
 <body>
 <div id="game"></div>
 <div class="hud">
-  <div class="top">
-    <div class="brand"><b>BEST DUO</b></div>
-    <div class="stats">
-      <div class="stat"><small>TIME</small><strong id="time">60</strong></div>
-      <div class="stat"><small>SCORE</small><strong id="count">0</strong></div>
-    </div>
+  <div class="logo">BEST DUO</div>
+  <div class="stats">
+    <div class="stat"><small>TIME</small><strong id="time">60</strong></div>
+    <div class="stat"><small>SCORE</small><strong id="score">0</strong></div>
   </div>
 </div>
-
 <div class="overlay" id="start">
   <div class="panel">
     <h1>BEST DUO</h1>
-    <p>눈앞의 물건을 보고<br><b>받거나, 쳐내세요.</b></p>
-    <button id="startBtn">시작</button>
-    <p class="sub">오른손을 위아래로 움직이세요.</p>
+    <p>덕형과 한길의 환상의 짝꿍 작전!<br>자경의 지갑을 털어라!</p>
+    <button id="startBtn">게임 시작</button>
   </div>
 </div>
-
 <div class="overlay hidden" id="end">
   <div class="panel">
-    <h1 id="endTitle">들켰다!</h1>
-    <p id="endText">처리한 물건 0개</p>
-    <button id="againBtn">다시 하기</button>
+    <h1>들켰다!</h1>
+    <p id="result"></p>
+    <button id="again">다시 하기</button>
   </div>
 </div>
 
@@ -62,407 +55,399 @@ button{border:0;border-radius:14px;background:#d8ed9d;color:#20291c;font-weight:
 <script type="module">
 import * as THREE from 'three';
 
-const $=s=>document.querySelector(s);
-const mount=$('#game');
-
+const $=id=>document.getElementById(id);
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0xc8cbb7);
-scene.fog=new THREE.Fog(0xc8cbb7,10,24);
+scene.background=new THREE.Color(0x8cccf0);
+scene.fog=new THREE.Fog(0x8cccf0,18,45);
 
-const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,100);
-camera.position.set(0,2.65,8.5);
-camera.lookAt(0,2,0);
+const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,100);
+camera.position.set(0,4.1,11);
+camera.lookAt(0,2.3,0);
 
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
+const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
-mount.appendChild(renderer.domElement);
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.15;
+$('game').appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xffffff,0x707b64,2.1));
-const sun=new THREE.DirectionalLight(0xfff1d5,2.4);
-sun.position.set(-4,8,7);
+// 자연광
+scene.add(new THREE.HemisphereLight(0xe7f6ff,0x82915c,2.1));
+const sun=new THREE.DirectionalLight(0xfff0cf,3.1);
+sun.position.set(-6,12,8);
 sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.left=-12;
+sun.shadow.camera.right=12;
+sun.shadow.camera.top=12;
+sun.shadow.camera.bottom=-12;
 scene.add(sun);
 
-const mat=(c,r=.9)=>new THREE.MeshStandardMaterial({color:c,roughness:r,flatShading:true});
-
-function mesh(parent,geo,color,x,y,z,sx=1,sy=1,sz=1){
-  const m=new THREE.Mesh(geo,mat(color));
-  m.position.set(x,y,z);
-  m.scale.set(sx,sy,sz);
+// 재질과 둥근 도형
+const material=(color,roughness=.85)=>new THREE.MeshStandardMaterial({
+  color,roughness,flatShading:false
+});
+function add(parent,geo,color,pos,scale=[1,1,1]){
+  const m=new THREE.Mesh(geo,material(color));
+  m.position.set(...pos);
+  m.scale.set(...scale);
   m.castShadow=true;
   m.receiveShadow=true;
   parent.add(m);
   return m;
 }
-function cube(p,w,h,d,c,x,y,z,rz=0){
-  const m=mesh(p,new THREE.BoxGeometry(w,h,d),c,x,y,z);
-  m.rotation.z=rz;
+function sphere(parent,color,pos,scale=[1,1,1],r=.5){
+  return add(parent,new THREE.SphereGeometry(r,20,16),color,pos,scale);
+}
+function capsule(parent,color,pos,r=.2,length=.5,rotation=[0,0,0]){
+  const m=add(parent,new THREE.CapsuleGeometry(r,length,5,12),color,pos);
+  m.rotation.set(...rotation);
   return m;
 }
-function ball(p,r,c,x,y,z,sx=1,sy=1,sz=1){
-  return mesh(p,new THREE.SphereGeometry(r,10,8),c,x,y,z,sx,sy,sz);
+function box(parent,color,pos,size,rotation=[0,0,0]){
+  const m=add(parent,new THREE.BoxGeometry(...size),color,pos);
+  m.rotation.set(...rotation);
+  return m;
 }
 
-const floor=mesh(scene,new THREE.PlaneGeometry(30,30),0x9da88d,0,-.08,-2);
-floor.rotation.x=-Math.PI/2;
-mesh(scene,new THREE.PlaneGeometry(20,12),0xd8d8c4,0,4,-3.2);
+// 야외 배경
+const ground=add(scene,new THREE.PlaneGeometry(100,100),0x83a96b,[0,-.12,-5]);
+ground.rotation.x=-Math.PI/2;
 
-// 피해자 캐릭터
-const victim=new THREE.Group();
-victim.position.set(0,.25,-.45);
-scene.add(victim);
-
-cube(victim,1.65,1.75,.55,0xf1eee2,0,1.18,0);
-cube(victim,.48,1.1,.58,0xe9e5d8,-.93,1.25,.02,-.12);
-cube(victim,.48,1.1,.58,0xe9e5d8,.93,1.25,.02,.12);
-
-// 멜빵
-cube(victim,.14,1.55,.08,0x806343,-.48,1.2,.31,-.04);
-cube(victim,.14,1.55,.08,0x806343,.48,1.2,.31,.04);
-
-// 목과 머리
-cube(victim,.42,.4,.42,0xc28e6e,0,2.08,0);
-const head=new THREE.Group();
-head.position.set(0,2.72,0);
-victim.add(head);
-
-ball(head,.62,0xc99a78,0,0,0,1,.98,.9);
-
-// 검은 머리카락
-ball(head,.64,0x171817,0,.2,-.12,1.04,.9,1.02);
-ball(head,.58,0x171817,0,.43,.23,1.02,.34,.86);
-ball(head,.28,0x171817,-.3,.49,.31,1,.3,.9);
-ball(head,.23,0x171817,.25,.5,.32,1,.28,.9);
-
-// 안경 다리
-cube(head,.07,.09,.7,0x242726,-.59,-.02,.02);
-cube(head,.07,.09,.7,0x242726,.59,-.02,.02);
-
-// 정면 얼굴
-ball(head,.075,0x25201d,-.22,.06,.55,.65,.55,.45);
-ball(head,.075,0x25201d,.22,.06,.55,.65,.55,.45);
-cube(head,.28,.045,.06,0x3b201d,0,.27,.56);
-ball(head,.07,0x4b1715,0,-.22,.57,1,.6,.3);
-
-// 화난 눈썹
-cube(head,.28,.07,.07,0x171514,-.22,.19,.57,-.3);
-cube(head,.28,.07,.07,0x171514,.22,.19,.57,.3);
-
-// 왼쪽 도둑 팔
-const leftArm=new THREE.Group();
-leftArm.position.set(-2,.1,1.65);
-scene.add(leftArm);
-cube(leftArm,.58,1.35,.52,0x526c4e,0,.48,0,-.36);
-ball(leftArm,.25,0xc99472,.15,-.22,.03,1.1,.85,.85);
-
-// 오른쪽 도둑 팔과 손
-const rightArm=new THREE.Group();
-rightArm.position.set(1.62,-.02,2.35);
-scene.add(rightArm);
-cube(rightArm,.88,1.75,.72,0x879184,0,.52,0,.35);
-ball(rightArm,.43,0xc99472,-.16,-.28,.12,1.18,.9,1.02);
-
-for(let i=0;i<4;i++){
-  ball(rightArm,.105,0xc99472,-.43+i*.17,-.48,.25,.9,1.55,.9);
+// 먼 산
+for(let i=0;i<9;i++){
+  const h=2+Math.random()*3;
+  const hill=sphere(scene,0x739d82,[-15+i*4.2,h*.25,-17],[3.5,h,2],1);
+  hill.castShadow=false;
 }
-
-// 왼손에 들려 나오는 아이템
-const itemHolder=new THREE.Group();
-itemHolder.position.set(-1.48,.18,2.55);
-itemHolder.scale.setScalar(1.42);
-scene.add(itemHolder);
-
-const items=['지갑','돈','담배','모자','라이터','돌','벽돌','막대기','수배 전단지','옥수수','신문'];
-const catchSet=new Set(['지갑','돈','담배','모자','라이터']);
-
-let item=null,itemName='',active=false;
-let remaining=60,score=0,combo=0,decision=0,spawnIn=.4;
-let lastItem='',run=0,drag=false,startY=0,deltaY=0;
-let last=performance.now(),clock=0,turning=false,turnTime=0,shake=0;
-
-function makeItem(n){
+// 구름
+for(let i=0;i<7;i++){
   const g=new THREE.Group();
+  const x=-12+i*4;
+  sphere(g,0xfaf8ed,[0,0,0],[1.5,.65,.7],1);
+  sphere(g,0xfaf8ed,[-.9,-.12,.05],[.9,.48,.6],1);
+  sphere(g,0xfaf8ed,[.85,-.1,0],[.95,.5,.65],1);
+  g.position.set(x,8+(i%3),-15);
+  scene.add(g);
+}
 
-  if(n==='지갑'){
-    cube(g,.72,.48,.2,0x67412f,0,0,0);
-    cube(g,.62,.08,.22,0x9b7657,0,.04,.02);
-    cube(g,.12,.16,.04,0xd1b77a,.22,-.02,.13);
+// 캐릭터 공통: 둥근 얼굴, 관절, 팔다리
+function makeVictim(){
+  const root=new THREE.Group();
+  scene.add(root);
+
+  // 다리
+  const leftLeg=new THREE.Group();
+  leftLeg.position.set(-.32,.95,0);
+  root.add(leftLeg);
+  capsule(leftLeg,0x55463b,[0,-.48,0],.19,.68);
+  sphere(leftLeg,0x44372f,[0,-1.03,.12],[.25,.15,.38]);
+
+  const rightLeg=new THREE.Group();
+  rightLeg.position.set(.32,.95,0);
+  root.add(rightLeg);
+  capsule(rightLeg,0x55463b,[0,-.48,0],.19,.68);
+  sphere(rightLeg,0x44372f,[0,-1.03,.12],[.25,.15,.38]);
+
+  // 몸통
+  const torso=new THREE.Group();
+  torso.position.y=1.9;
+  root.add(torso);
+  sphere(torso,0xf1eee1,[0,0,0],[.78,1.05,.42],.7);
+
+  // 셔츠 소매
+  capsule(torso,0xf1eee1,[-.88,-.05,0],.19,.58,[0,0,.12]);
+  capsule(torso,0xf1eee1,[.88,-.05,0],.19,.58,[0,0,-.12]);
+
+  // 멜빵
+  capsule(torso,0x805d39,[-.38,.02,.37],.075,.88,[0,0,-.13]);
+  capsule(torso,0x805d39,[.38,.02,.37],.075,.88,[0,0,.13]);
+  box(torso,0x9b774b,[0,-.25,.42],[.18,.12,.04]);
+
+  // 목
+  capsule(torso,0xc99270,[0,.91,0],.18,.25);
+
+  // 머리 그룹: 뒤통수와 얼굴
+  const head=new THREE.Group();
+  head.position.set(0,1.35,0);
+  torso.add(head);
+
+  sphere(head,0xc99472,[0,0,0],[.64,.76,.57],.65);
+
+  // 머리카락
+  sphere(head,0x17191a,[0,.27,-.09],[.67,.59,.59],.65);
+  sphere(head,0x17191a,[0,.48,.03],[.58,.3,.53],.5);
+  sphere(head,0x17191a,[-.31,.28,.18],[.24,.34,.3],.35);
+  sphere(head,0x17191a,[.31,.28,.18],[.24,.34,.3],.35);
+
+  // 귀
+  sphere(head,0xc99472,[-.62,-.02,0],[.15,.2,.13],.2);
+  sphere(head,0xc99472,[.62,-.02,0],[.15,.2,.13],.2);
+
+  // 얼굴 요소: 정면 방향 +Z
+  sphere(head,0xf5e5d2,[-.22,.02,.49],[.065,.09,.035],.1);
+  sphere(head,0xf5e5d2,[.22,.02,.49],[.065,.09,.035],.1);
+  sphere(head,0x28201b,[-.22,.02,.53],[.035,.05,.025],.1);
+  sphere(head,0x28201b,[.22,.02,.53],[.035,.05,.025],.1);
+  sphere(head,0xc17e60,[0,-.13,.53],[.09,.08,.06],.1);
+  capsule(head,0x633b35,[0,-.31,.5],.025,.15,[0,0,Math.PI/2]);
+
+  // 안경
+  const glasses=new THREE.Group();
+  head.add(glasses);
+  for(const x of [-.22,.22]){
+    const ring=new THREE.Mesh(
+      new THREE.TorusGeometry(.17,.025,8,20),
+      material(0x292b2a)
+    );
+    ring.position.set(x,.02,.54);
+    glasses.add(ring);
   }
-  else if(n==='돈'){
-    cube(g,.78,.48,.035,0xf3f0df,0,0,0);
-    cube(g,.68,.36,.012,0x263f70,0,0,.025);
-    for(let i=0;i<3;i++)cube(g,.46,.025,.014,0xf3f0df,0,.12-i*.12,.035);
+  box(glasses,0x292b2a,[0,.02,.56],[.12,.035,.035]);
+
+  // 뒤돌아 화내는 표정
+  const brows=new THREE.Group();
+  head.add(brows);
+  for(const x of [-.22,.22]){
+    box(brows,0x211b18,[x,.19,.57],[.23,.055,.045],[0,0,x<0?-.35:.35]);
   }
-  else if(n==='담배'){
+  brows.visible=false;
+
+  root.userData={head,torso,leftLeg,rightLeg,brows};
+  return root;
+}
+
+const victim=makeVictim();
+victim.position.set(0,0,-.5);
+
+// 캐릭터를 기본적으로 등지고 세팅
+victim.rotation.y=Math.PI;
+
+// 덕형의 왼쪽 팔과 손
+const leftArm=new THREE.Group();
+leftArm.position.set(-2.35,1.25,2.1);
+scene.add(leftArm);
+capsule(leftArm,0x59734e,[0,.55,0],.27,.95,[0,0,-.7]);
+capsule(leftArm,0x59734e,[.48,.15,.03],.23,.6,[0,0,.75]);
+sphere(leftArm,0xc99472,[.8,-.12,.08],[.25,.2,.2],.3);
+for(let i=0;i<4;i++){
+  capsule(leftArm,0xc99472,[.94+i*.035,-.28,.15],.055,.19,[0,0,-.3]);
+}
+
+// 한길의 오른쪽 팔과 손
+const rightArm=new THREE.Group();
+rightArm.position.set(2.1,.2,2.7);
+scene.add(rightArm);
+capsule(rightArm,0x84968b,[0,.45,0],.32,1.2,[0,0,.32]);
+capsule(rightArm,0x84968b,[-.35,-.25,.05],.27,.75,[0,0,-.8]);
+
+const palm=sphere(rightArm,0xc99472,[-.65,-.53,.15],[.34,.22,.18],.4);
+const fingers=[];
+for(let i=0;i<4;i++){
+  const f=capsule(rightArm,0xc99472,[-.88,-.63+i*.105,.19],.065,.2,[0,0,-.35]);
+  fingers.push(f);
+}
+capsule(rightArm,0xc99472,[-.56,-.76,.2],.07,.2,[0,0,.8]);
+
+// 아이템
+const holder=new THREE.Group();
+holder.position.set(-1.55,1.5,2.65);
+scene.add(holder);
+
+const itemNames=['지갑','돈','담배','모자','라이터','돌','벽돌','막대기','수배 전단지','옥수수','신문'];
+const catchItems=new Set(['지갑','돈','담배','모자','라이터']);
+let currentItem=null,currentName='',itemTimer=0,spawnTimer=0;
+let score=0,time=60,active=false,combo=0,lastName='',repeat=0;
+let dragging=false,startY=0,dragY=0;
+let turnProgress=0,turning=false,shake=0;
+
+function createItem(name){
+  const g=new THREE.Group();
+  if(name==='지갑'){
+    box(g,0x754a34,[0,0,0],[.75,.48,.16]);
+    box(g,0x9a7354,[0,.02,.1],[.65,.08,.025]);
+    sphere(g,0xd9b56c,[.22,0,.13],[.07,.09,.04]);
+  }else if(name==='돈'){
+    box(g,0xf5f0dc,[0,0,0],[.8,.5,.04]);
+    box(g,0x304d76,[0,0,.03],[.7,.4,.015]);
+    sphere(g,0xf5f0dc,[0,0,.05],[.12,.14,.02]);
+  }else if(name==='담배'){
     for(let i=0;i<3;i++){
-      cube(g,.72,.105,.105,0xe9e0c9,0,(i-1)*.15,0);
-      cube(g,.14,.11,.11,0x9b6547,.3,(i-1)*.15,0);
+      capsule(g,0xe9e0c9,[0,(i-1)*.13,0],.045,.65,[0,0,Math.PI/2]);
+      box(g,0xb9784c,[.33,(i-1)*.13,0],[.09,.09,.09]);
     }
-  }
-  else if(n==='모자'){
-    mesh(g,new THREE.CylinderGeometry(.28,.34,.34,9),0x263d4b,0,.12,0);
-    mesh(g,new THREE.CylinderGeometry(.52,.52,.075,12),0x263d4b,0,-.06,.02);
-    cube(g,.2,.05,.12,0xc4a76a,0,.27,.03);
-  }
-  else if(n==='라이터'){
-    cube(g,.34,.52,.2,0xd5a52f,0,0,0);
-    cube(g,.16,.09,.22,0x333a3b,.1,.29,0);
-    cube(g,.07,.07,.08,0xd9d3bf,-.1,.3,.02);
-  }
-  else if(n==='돌'){
-    mesh(g,new THREE.DodecahedronGeometry(.4),0x737b79,0,0,0,1.2,.9,1);
-    mesh(g,new THREE.DodecahedronGeometry(.12),0x969b95,-.13,.17,.2);
-  }
-  else if(n==='벽돌'){
-    cube(g,.78,.46,.42,0xa64e39,0,0,0);
-    cube(g,.79,.045,.44,0x6e342d,0,.12,.01);
-  }
-  else if(n==='막대기'){
-    const m=mesh(g,new THREE.CylinderGeometry(.09,.12,1.12,7),0x78502e,0,0,0);
-    m.rotation.z=Math.PI/2;
-    ball(g,.12,0x49301f,-.53,0,0);
-    ball(g,.12,0x49301f,.53,0,0);
-  }
-  else if(n==='옥수수'){
-    mesh(g,new THREE.CapsuleGeometry(.19,.55,3,8),0xe5c34c,0,0,0,1,.85,1).rotation.z=Math.PI/2;
-    cube(g,.4,.13,.12,0x64834d,-.2,-.18,0,.4);
-  }
-  else if(n==='신문'){
-    cube(g,.82,.56,.045,0xe4dfd0,0,0,0);
-    cube(g,.65,.035,.018,0x383b39,0,.18,.035);
-    for(let i=0;i<4;i++)cube(g,.58,.018,.018,0x77766e,0,.07-i*.09,.035);
-  }
-  else{
-    cube(g,.76,.62,.04,0xf4ead4,0,0,0);
-    cube(g,.58,.08,.02,0xb13f36,0,.22,.03);
-    ball(g,.16,0x554c43,0,-.02,.04,.9,1.1,.3);
-    cube(g,.27,.025,.02,0x252525,0,-.24,.04);
+  }else if(name==='모자'){
+    add(g,new THREE.CylinderGeometry(.28,.34,.3,20),0x284455,[0,.08,0]);
+    add(g,new THREE.CylinderGeometry(.48,.48,.08,24),0x284455,[0,-.08,.04]);
+  }else if(name==='라이터'){
+    box(g,0xd9aa39,[0,0,0],[.3,.5,.2]);
+    box(g,0x424746,[.04,.27,0],[.17,.09,.22]);
+  }else if(name==='돌'){
+    add(g,new THREE.DodecahedronGeometry(.38),0x747b79,[0,0,0],[1.2,.9,1]);
+  }else if(name==='벽돌'){
+    box(g,0xa64e3d,[0,0,0],[.78,.45,.42]);
+  }else if(name==='막대기'){
+    capsule(g,0x79532f,[0,0,0],.09,.9,[0,0,Math.PI/2]);
+  }else if(name==='옥수수'){
+    capsule(g,0xe8c64e,[0,0,0],.18,.55,[0,0,Math.PI/2]);
+    capsule(g,0x64864b,[-.2,-.17,0],.08,.35,[0,0,.5]);
+  }else if(name==='신문'){
+    box(g,0xe8e2d2,[0,0,0],[.8,.55,.04]);
+    for(let i=0;i<4;i++)box(g,0x474744,[0,.17-i*.1,.03],[.6,.025,.015]);
+  }else{
+    box(g,0xf3e8d0,[0,0,0],[.78,.6,.04]);
+    box(g,0xb34438,[0,.2,.03],[.62,.08,.02]);
+    sphere(g,0x57483b,[0,-.04,.04],[.15,.15,.025]);
   }
   return g;
 }
 
-function pick(){
+function nextName(){
   let n;
-  do{
-    n=items[Math.floor(Math.random()*items.length)];
-  }while(n===lastItem&&run>=2);
-
-  if(n===lastItem)run++;
-  else{lastItem=n;run=1}
+  do{n=itemNames[Math.floor(Math.random()*itemNames.length)]}
+  while(n===lastName&&repeat>=2);
+  if(n===lastName)repeat++;
+  else{lastName=n;repeat=1}
   return n;
 }
-
-// 효과음
-function sound(type){
-  try{
-    const ctx=sound.ctx||(sound.ctx=new (window.AudioContext||window.webkitAudioContext)());
-    if(ctx.state==='suspended')ctx.resume();
-
-    const now=ctx.currentTime;
-    const osc=ctx.createOscillator();
-    const gain=ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    const cfg={
-      appear:[520,.07,'triangle'],
-      catch:[760,.09,'sine'],
-      swat:[190,.11,'square'],
-      combo:[980,.15,'triangle'],
-      fail:[95,.28,'sawtooth'],
-      turn:[130,.35,'square']
-    };
-
-    const [f,d,w]=cfg[type];
-    osc.type=w;
-    osc.frequency.setValueAtTime(f,now);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(35,f*.45),now+d);
-    gain.gain.setValueAtTime(.0001,now);
-    gain.gain.exponentialRampToValueAtTime(.12,now+.012);
-    gain.gain.exponentialRampToValueAtTime(.0001,now+d);
-    osc.start(now);
-    osc.stop(now+d+.02);
-  }catch(e){}
-}
-
-function hud(){
-  $('#time').textContent=Math.ceil(remaining);
-  $('#count').textContent=score;
-}
-
 function spawn(){
-  itemName=pick();
-  item=makeItem(itemName);
-  itemHolder.add(item);
-  item.position.set(0,0,0);
-  item.rotation.z=(Math.random()-.5)*.18;
-  decision=0;
-  sound('appear');
-  item.scale.setScalar(.72);
+  currentName=nextName();
+  currentItem=createItem(currentName);
+  holder.add(currentItem);
+  currentItem.scale.setScalar(.65);
+  itemTimer=0;
+  beep(520,.08);
 }
-
 function clearItem(){
-  if(item){
-    itemHolder.remove(item);
-    item.traverse(o=>{
-      o.geometry?.dispose();
-      o.material?.dispose();
-    });
-    item=null;
+  if(currentItem){
+    holder.remove(currentItem);
+    currentItem=null;
   }
 }
-
-function gameOver(reason){
+function beep(freq,duration){
+  try{
+    const ctx=beep.ctx||(beep.ctx=new AudioContext());
+    if(ctx.state==='suspended')ctx.resume();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.type='triangle';
+    osc.frequency.setValueAtTime(freq,ctx.currentTime);
+    gain.gain.setValueAtTime(.08,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);
+    osc.start();osc.stop(ctx.currentTime+duration);
+  }catch(e){}
+}
+function finish(reason){
   if(!active)return;
   active=false;
   clearItem();
   turning=true;
-  turnTime=0;
+  turnProgress=0;
   shake=.5;
-  sound('turn');
-  $('#endTitle').textContent=reason==='time'?'시간 종료!':'들켰다!';
-  $('#endText').textContent=`처리한 물건 ${score}개 · 연속 성공 ${combo}회`;
-  $('#end').classList.remove('hidden');
+  victim.userData.brows.visible=true;
+  beep(100,.4);
+  $('result').textContent=`처리한 물건 ${score}개`;
+  $('end').classList.remove('hidden');
 }
-
-function resolve(action){
-  if(!active||!item)return;
-
-  const good=(catchSet.has(itemName)&&action==='catch')||
-    (!catchSet.has(itemName)&&action==='swat');
-
-  if(!good){
-    sound('fail');
-    gameOver('fail');
-    return;
-  }
-
+function judge(direction){
+  if(!active||!currentItem)return;
+  const correct=(catchItems.has(currentName)&&direction==='down')||
+    (!catchItems.has(currentName)&&direction==='up');
+  if(!correct){finish('caught');return;}
   score++;
   combo++;
-  sound(action==='catch'?'catch':'swat');
-  if(combo%5===0)sound('combo');
-
+  $('score').textContent=score;
+  beep(direction==='down'?780:250,.1);
+  if(combo%5===0)beep(1000,.18);
   clearItem();
-  rightArm.rotation.z=action==='catch'?.1:-.7;
-
-  setTimeout(()=>{
-    if(!drag)rightArm.rotation.z=.35;
-  },170);
-
-  spawnIn=Math.max(.2,.65-(60-remaining)*.006);
-  hud();
+  rightArm.rotation.z=direction==='down'?.1:-.5;
+  spawnTimer=Math.max(.22,.65-(60-time)*.006);
 }
 
-function start(){
-  active=true;
-  remaining=60;
-  score=0;
-  combo=0;
-  decision=0;
-  spawnIn=.35;
-  lastItem='';
-  run=0;
-  turning=false;
-  victim.rotation.y=Math.PI;
-  head.rotation.y=0;
-  head.rotation.z=0;
-  rightArm.rotation.z=.35;
-  rightArm.position.y=-.02;
-  clearItem();
-  $('#start').classList.add('hidden');
-  $('#end').classList.add('hidden');
-  hud();
-}
-
-$('#startBtn').onclick=start;
-$('#againBtn').onclick=start;
-
-// 드래그 조작
-function down(e){
-  if(!active||!item)return;
-  drag=true;
+// 조작
+renderer.domElement.addEventListener('pointerdown',e=>{
+  if(!active||!currentItem)return;
+  dragging=true;
   startY=e.clientY;
-  deltaY=0;
-  renderer.domElement.setPointerCapture?.(e.pointerId);
-}
-function move(e){
-  if(!drag)return;
-  deltaY=e.clientY-startY;
-  const v=THREE.MathUtils.clamp(deltaY/95,-1,1);
-  rightArm.rotation.z=.35+v*1.12;
-  rightArm.position.y=-.02-v*.42;
-}
-function up(){
-  if(!drag)return;
-  drag=false;
+  dragY=0;
+});
+renderer.domElement.addEventListener('pointermove',e=>{
+  if(!dragging)return;
+  dragY=e.clientY-startY;
+  const v=THREE.MathUtils.clamp(dragY/100,-1,1);
+  rightArm.rotation.z=.25+v*.9;
+  rightArm.position.y=.2-v*.3;
+});
+window.addEventListener('pointerup',()=>{
+  if(!dragging)return;
+  dragging=false;
+  if(Math.abs(dragY)>15)judge(dragY>0?'down':'up');
+  rightArm.rotation.z=.25;
+  rightArm.position.y=.2;
+});
 
-  if(Math.abs(deltaY)>12){
-    resolve(deltaY>0?'catch':'swat');
-  }else{
-    rightArm.rotation.z=.35;
-    rightArm.position.y=-.02;
-  }
+function startGame(){
+  active=true;
+  time=60;score=0;combo=0;spawnTimer=.3;
+  lastName='';repeat=0;
+  turning=false;turnProgress=0;
+  victim.rotation.y=Math.PI;
+  victim.userData.brows.visible=false;
+  clearItem();
+  $('time').textContent=60;
+  $('score').textContent=0;
+  $('start').classList.add('hidden');
+  $('end').classList.add('hidden');
 }
+$('startBtn').onclick=startGame;
+$('again').onclick=startGame;
 
-renderer.domElement.addEventListener('pointerdown',down);
-renderer.domElement.addEventListener('pointermove',move);
-window.addEventListener('pointerup',up);
-
+let last=performance.now();
 function animate(now){
   requestAnimationFrame(animate);
   const dt=Math.min((now-last)/1000,.05);
   last=now;
-  clock+=dt;
 
   if(active){
-    remaining-=dt;
+    time-=dt;
+    $('time').textContent=Math.max(0,Math.ceil(time));
+    if(time<=0)finish('time');
 
-    if(remaining<=0){
-      remaining=0;
-      gameOver('time');
-    }
-
-    if(active){
-      if(!item){
-        spawnIn-=dt;
-        if(spawnIn<=0)spawn();
-      }else{
-        decision+=dt;
-        itemHolder.position.x=-1.48+Math.sin(clock*2.8)*.035;
-        itemHolder.position.y=.18+Math.sin(clock*5)*.045;
-        item.scale.setScalar(Math.min(1.42,.72+decision*1.1));
-        item.rotation.y=Math.sin(clock*3.5)*.09;
-
-        if(decision>=3)gameOver('slow');
-      }
+    if(active&&!currentItem){
+      spawnTimer-=dt;
+      if(spawnTimer<=0)spawn();
+    }else if(active&&currentItem){
+      itemTimer+=dt;
+      currentItem.scale.setScalar(Math.min(1.15,.65+itemTimer*.8));
+      currentItem.rotation.y=Math.sin(now*.002)*.12;
+      if(itemTimer>3)finish('late');
     }
   }
 
-  // 피해자가 실제로 몸을 돌려 플레이어를 바라봄
   if(turning){
-    turnTime=Math.min(turnTime+dt,1);
-    const p=1-Math.pow(1-turnTime,3);
-    victim.rotation.y=Math.PI*(1-p);
-    head.rotation.z=Math.sin(turnTime*14)*.035;
+    turnProgress=Math.min(1,turnProgress+dt*1.8);
+    const eased=1-Math.pow(1-turnProgress,3);
+    victim.rotation.y=Math.PI*(1-eased);
+    victim.userData.head.rotation.z=Math.sin(now*.015)*.025;
   }
 
   if(shake>0){
     shake=Math.max(0,shake-dt);
     camera.position.x=(Math.random()-.5)*shake*.12;
-    camera.position.y=2.65+(Math.random()-.5)*shake*.1;
-  }else{
-    camera.position.x=0;
-    camera.position.y=2.65;
+  }else camera.position.x=0;
+
+  // 부드러운 팔 움직임
+  if(!dragging&&active){
+    rightArm.rotation.z+=(.25-rightArm.rotation.z)*Math.min(1,dt*9);
+    rightArm.position.y+=(.2-rightArm.position.y)*Math.min(1,dt*9);
   }
 
-  hud();
   renderer.render(scene,camera);
 }
-
 requestAnimationFrame(animate);
 
 addEventListener('resize',()=>{
