@@ -108,8 +108,8 @@ scene.background=new THREE.Color(0x9bd6f4);
 scene.fog=new THREE.Fog(0x9bd6f4,30,70);
 
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,150);
-// 이전보다 살짝 뒤로 이동
-camera.position.set(0,5.25,10.7);
+// 카메라를 한 단계 더 뒤로
+camera.position.set(0,5.35,12.2);
 camera.lookAt(0,4.7,0);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -218,7 +218,7 @@ for(const side of [-1,1]){
  ball(body,0xe8b18f,[side*.65,-.42,.02],[.22,.22,.22]);
 }
 
-// 멜빵
+// 멜빵 앞뒤 연결
 for(const side of [-1,1]){
  box(body,0x795338,[side*.31,.04,.345],[.13,1.24,.07],.025);
  box(body,0x98704b,[side*.31,.58,.39],[.17,.12,.035],.02);
@@ -238,36 +238,51 @@ const skinColor=0xe8b18f;
 // 뒤통수
 ball(head,hairColor,[0,0,0],[1.08,1.12,.96]);
 
-// 얼굴을 머리 쪽으로 더 깊게 겹쳐 분리감 줄이기
-ball(head,skinColor,[0,-.015,.39],[.88,.94,.69]);
+// 얼굴은 머리 앞쪽에 깊게 파묻히도록 겹침
+ball(head,skinColor,[0,-.015,.43],[.88,.94,.67]);
 
-// 귀: 얼굴 양옆에 붙이고 머리와 얼굴 안쪽으로 깊게 겹침
+// 귀는 얼굴의 옆면과 머리 안쪽에 겹치도록 배치
 for(const side of [-1,1]){
- ball(head,skinColor,[side*.73,-.055,.43],[.25,.29,.28]);
- ball(head,0xd69b7f,[side*.73,-.055,.635],[.115,.145,.07]);
- ball(head,skinColor,[side*.73,-.055,.66],[.07,.095,.035]);
+ ball(head,skinColor,[side*.72,-.055,.43],[.24,.28,.27]);
+ ball(head,0xd69b7f,[side*.72,-.055,.625],[.105,.13,.055]);
+ ball(head,skinColor,[side*.72,-.055,.645],[.065,.085,.025]);
 }
 
-// 앞머리: 위에 뜨지 않도록 머리 앞면에 깊게 넣고 아래로 내림
-// 한 덩어리의 넓고 낮은 타원 형태
-const fringe=ball(
+// 앞머리: 둥근 공 여러 개 대신 두 갈래로 나뉘는 넓은 곡면
+// 각 조각을 두상 안쪽으로 깊게 넣어 떠 보이지 않게 함
+const fringeLeft=new THREE.Group();
+head.add(fringeLeft);
+fringeLeft.position.set(-.27,.48,.58);
+fringeLeft.rotation.z=-.22;
+fringeLeft.rotation.y=-.12;
+
+const leftMain=ball(fringeLeft,hairColor,[0,.18,.16],[.58,.43,.32]);
+leftMain.rotation.z=-.35;
+
+const leftTip=ball(fringeLeft,hairColor,[-.19,-.08,.20],[.34,.34,.25]);
+leftTip.rotation.z=-.45;
+
+const fringeRight=new THREE.Group();
+head.add(fringeRight);
+fringeRight.position.set(.27,.48,.58);
+fringeRight.rotation.z=.22;
+fringeRight.rotation.y=.12;
+
+const rightMain=ball(fringeRight,hairColor,[0,.18,.16],[.58,.43,.32]);
+rightMain.rotation.z=.35;
+
+const rightTip=ball(fringeRight,hairColor,[.19,-.08,.20],[.34,.34,.25]);
+rightTip.rotation.z=.45;
+
+// 앞머리 아래쪽을 이마에 붙여 연결하는 얇은 곡선 덮개
+const fringeBridge=ball(
  head,
  hairColor,
- [0,.55,.70],
- [1.02,.30,.30]
+ [0,.39,.72],
+ [.83,.20,.24]
 );
-fringe.rotation.z=-.035;
 
-// 앞머리 아랫부분을 얼굴 쪽으로 더 겹쳐 연결
-const fringeEdge=ball(
- head,
- hairColor,
- [0,.43,.79],
- [.94,.17,.23]
-);
-fringeEdge.rotation.z=-.035;
-
-// 안경: 동그란 렌즈 두 개만, 가운데 연결 부품 제거
+// 안경: 동그란 렌즈만, 중앙 연결부품 없음
 const glasses=new THREE.Group();
 head.add(glasses);
 
@@ -285,7 +300,7 @@ for(const side of [-1,1]){
  arm.rotation.y=side*.35;
 }
 
-// 눈썹을 조금 아래로 내림
+// 눈썹을 아래로 조금 내림
 const brows=new THREE.Group();
 head.add(brows);
 
@@ -321,7 +336,7 @@ const rightArm=createArm(0x81998b);
 const leftShoulder=new THREE.Vector3(-2.55,4.0,2.8);
 const rightShoulder=new THREE.Vector3(2.55,4.0,2.8);
 
-// 양손을 화면 안으로 더 올림
+// 손이 화면 안에 보이도록 높이 조정
 const leftBase=new THREE.Vector3(-.65,2.65,2.55);
 const rightBase=new THREE.Vector3(.65,2.65,2.55);
 
@@ -482,9 +497,12 @@ function spawn(){
  name=nextName();
  item=makeItem(name);
  holder.add(item);
- holder.position.set(0,1.8,3.1);
- holder.scale.setScalar(3.15);
+
+ // 물건을 손바닥 사이 중앙, 손보다 약간 앞쪽에 배치
+ holder.position.set(0,2.75,3.65);
+ holder.scale.setScalar(2.5);
  itemTimer=0;
+
  leftProgress=0;
  leftMoving=true;
  showPhrase();
@@ -620,8 +638,6 @@ function animate(now){
   if(active&&item){
    itemTimer+=dt;
    item.rotation.y=Math.sin(now*.002)*.04;
-
-   // 아이템 제한시간 단축
    if(itemTimer>=1.3)finish();
   }
  }
