@@ -232,10 +232,7 @@ for(const side of [-1,1]){
  box(body,0xb08b65,[side*.31,.58,.39],[.17,.12,.035],.02);
 }
 
-// --------------------------------------------------
-// 자경이 머리 새 제작
-// 기존 카메라, 캐릭터 위치, 크기, 구도는 변경하지 않음
-// --------------------------------------------------
+// 자경이 머리
 const head=new THREE.Group();
 head.position.set(0,2.0,0);
 victim.add(head);
@@ -243,82 +240,16 @@ victim.add(head);
 const hairColor=0x40332e;
 const skinColor=0xe8b99b;
 
-// 얼굴
-const face=ball(head,skinColor,[0,-.015,.48],[.88,.94,.67]);
+// 머리통: 짙은 갈색 구체 하나로 작고 단순하게 제작
+// 얼굴은 머리통 앞면에 겹쳐 붙이는 구조
+ball(head,hairColor,[0,.015,0],[.92,.98,.76]);
 
-// 머리카락을 여러 구체로 붙이지 않고 하나의 연속된 메시로 제작
-// 구형 두상에서 이마와 얼굴 앞쪽 하단만 비워 둔다.
-function createHairShell(){
- const geometry=new THREE.SphereGeometry(1,64,48);
- const position=geometry.attributes.position;
- const index=geometry.index;
- const kept=[];
+// 얼굴: 눈, 코, 입 없이 매끈한 타원형
+ball(head,skinColor,[0,-.015,.40],[.88,.94,.67]);
 
- for(let i=0;i<index.count;i+=3){
-  const ids=[index.getX(i),index.getX(i+1),index.getX(i+2)];
-  const p=ids.map(id=>new THREE.Vector3().fromBufferAttribute(position,id));
-
-  const center=new THREE.Vector3()
-   .add(p[0]).add(p[1]).add(p[2])
-   .multiplyScalar(1/3);
-
-  // 얼굴 정면의 아래쪽 영역만 비우고
-  // 정수리와 옆머리, 뒤통수는 하나로 이어지게 유지
-  const frontLower=center.z>.12 && center.y<.48;
-  if(!frontLower)kept.push(...ids);
- }
-
- geometry.setIndex(kept);
- geometry.computeVertexNormals();
-
- const hair=new THREE.Mesh(
-  geometry,
-  new THREE.MeshStandardMaterial({
-   color:hairColor,
-   roughness:.95,
-   side:THREE.DoubleSide
-  })
- );
-
- hair.position.set(0,.02,-.015);
- hair.scale.set(.96,1.02,.82);
- hair.castShadow=true;
- hair.receiveShadow=true;
- return hair;
-}
-head.add(createHairShell());
-
-// 귀는 얼굴 안쪽에 절반 이상 겹치게 배치
-for(const side of [-1,1]){
- ball(head,skinColor,[side*.76,-.075,.49],[.17,.21,.15]);
-}
-
-// 눈
-for(const side of [-1,1]){
- ball(head,0x302b28,[side*.18,-.025,1.135],[.045,.055,.025]);
-}
-
-// 코는 작고 둥글게
-ball(head,0xd99f83,[0,-.13,1.145],[.065,.055,.045]);
-
-// 입
-const mouthCurve=new THREE.CatmullRomCurve3([
- new THREE.Vector3(-.09,-.27,1.13),
- new THREE.Vector3(-.045,-.29,1.15),
- new THREE.Vector3(0,-.27,1.155),
- new THREE.Vector3(.045,-.29,1.15),
- new THREE.Vector3(.09,-.27,1.13)
-]);
-const mouth=new THREE.Mesh(
- new THREE.TubeGeometry(mouthCurve,20,.012,6,false),
- mat(0x895e53)
-);
-head.add(mouth);
-
-// 안경: 기존보다 약 25% 작게, 테도 얇게
+// 안경: 작고 얇은 테
 const glasses=new THREE.Group();
 head.add(glasses);
-
 const glassesMaterial=mat(0x393633);
 
 for(const side of [-1,1]){
@@ -326,30 +257,28 @@ for(const side of [-1,1]){
   new THREE.TorusGeometry(.145,.018,8,32),
   glassesMaterial
  );
- ring.position.set(side*.175,-.005,1.155);
+ ring.position.set(side*.175,-.005,1.055);
  glasses.add(ring);
 }
 
-// 가느다란 안경 연결 다리
 const bridge=new THREE.Mesh(
  new THREE.BoxGeometry(.065,.018,.018),
  glassesMaterial
 );
-bridge.position.set(0,-.005,1.155);
+bridge.position.set(0,-.005,1.055);
 glasses.add(bridge);
 
-// 안경 옆 연결부
 for(const side of [-1,1]){
  const arm=new THREE.Mesh(
   new THREE.BoxGeometry(.12,.018,.018),
   glassesMaterial
  );
- arm.position.set(side*.31,-.005,1.12);
+ arm.position.set(side*.31,-.005,1.02);
  arm.rotation.y=side*.25;
  glasses.add(arm);
 }
 
-// 화난 눈썹
+// 화난 눈썹: 게임오버 때만 표시
 const brows=new THREE.Group();
 head.add(brows);
 
@@ -357,7 +286,7 @@ for(const side of [-1,1]){
  const b=box(
   brows,
   0x40332e,
-  [side*.18,.18,1.145],
+  [side*.18,.18,1.055],
   [.17,.035,.025],
   .012
  );
