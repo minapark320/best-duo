@@ -107,7 +107,7 @@ scene.background=new THREE.Color(0x9bd6f4);
 scene.fog=new THREE.Fog(0x9bd6f4,30,70);
 
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,150);
-camera.position.set(0,4.9,11.5);
+camera.position.set(0,5.0,12.1);
 camera.lookAt(0,3.9,0);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -156,7 +156,7 @@ function capsule(p,c,pos,r,l,rot=[0,0,0]){
  return m;
 }
 
-// 효과음 시스템
+// 효과음
 let audioContext=null;
 
 function initAudio(){
@@ -166,107 +166,68 @@ function initAudio(){
    if(!AudioCtx)return;
    audioContext=new AudioCtx();
   }
-  if(audioContext.state==='suspended'){
-   audioContext.resume();
-  }
- }catch(e){
-  console.warn('오디오를 시작할 수 없습니다.',e);
- }
+  if(audioContext.state==='suspended')audioContext.resume();
+ }catch(e){}
 }
 
 function tone(freq,start,duration,type='sine',volume=.15,endFreq=null){
  if(!audioContext)return;
-
  const osc=audioContext.createOscillator();
  const gain=audioContext.createGain();
-
  osc.type=type;
  osc.frequency.setValueAtTime(freq,start);
-
  if(endFreq!==null){
-  osc.frequency.exponentialRampToValueAtTime(
-   Math.max(1,endFreq),
-   start+duration
-  );
+  osc.frequency.exponentialRampToValueAtTime(Math.max(1,endFreq),start+duration);
  }
-
  gain.gain.setValueAtTime(.001,start);
  gain.gain.exponentialRampToValueAtTime(volume,start+.012);
  gain.gain.exponentialRampToValueAtTime(.001,start+duration);
-
  osc.connect(gain);
  gain.connect(audioContext.destination);
-
  osc.start(start);
  osc.stop(start+duration+.02);
 }
 
 function noiseBurst(start,duration,volume=.2,filterFreq=1200){
  if(!audioContext)return;
-
  const length=Math.max(1,Math.floor(audioContext.sampleRate*duration));
  const buffer=audioContext.createBuffer(1,length,audioContext.sampleRate);
  const data=buffer.getChannelData(0);
-
- for(let i=0;i<length;i++){
-  data[i]=(Math.random()*2-1)*(1-i/length);
- }
-
+ for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*(1-i/length);
  const source=audioContext.createBufferSource();
  const filter=audioContext.createBiquadFilter();
  const gain=audioContext.createGain();
-
  source.buffer=buffer;
  filter.type='lowpass';
  filter.frequency.setValueAtTime(filterFreq,start);
-
  gain.gain.setValueAtTime(volume,start);
  gain.gain.exponentialRampToValueAtTime(.001,start+duration);
-
  source.connect(filter);
  filter.connect(gain);
  gain.connect(audioContext.destination);
-
  source.start(start);
  source.stop(start+duration);
 }
 
 function playSfx(type){
  if(!audioContext)return;
-
  const now=audioContext.currentTime;
 
  if(type==='spawn'){
   tone(520,now,.09,'sine',.055,680);
-  return;
- }
-
- if(type==='catch'){
-  // 받기: 맑은 동전 획득음
+ }else if(type==='catch'){
   tone(880,now,.16,'sine',.18,1180);
   tone(1320,now+.09,.22,'sine',.13,1580);
   tone(1760,now+.17,.18,'sine',.07,1900);
-  return;
- }
-
- if(type==='deflect'){
-  // 쳐내기: 낮은 타격음 + 짧은 바람 소리
+ }else if(type==='deflect'){
   tone(155,now,.19,'triangle',.3,75);
   tone(95,now+.015,.16,'sine',.2,55);
   noiseBurst(now,.18,.2,1500);
   tone(430,now+.055,.1,'triangle',.08,220);
-  return;
- }
-
- if(type==='wrong'){
-  // 잘못된 조작: 짧고 둔탁한 실패음
+ }else if(type==='wrong'){
   tone(180,now,.3,'sawtooth',.2,75);
   tone(110,now+.04,.25,'triangle',.16,55);
-  return;
- }
-
- if(type==='gameover'){
-  // 게임오버: 묵직한 하강 경고음
+ }else if(type==='gameover'){
   tone(220,now,.38,'triangle',.2,130);
   tone(155,now+.22,.48,'sawtooth',.16,65);
   tone(75,now+.35,.55,'sine',.2,42);
@@ -357,61 +318,122 @@ victim.add(head);
 const hairColor=0x211b1b;
 const skinColor=0xe8b18f;
 
-ball(head,hairColor,[0,0,0],[1.08,1.12,.96]);
-ball(head,skinColor,[0,-.015,.43],[.88,.94,.67]);
+// 얼굴을 먼저 배치
+ball(head,skinColor,[0,-.015,.48],[.88,.94,.67]);
 
-// 귀
-for(const side of [-1,1]){
- ball(head,skinColor,[side*.72,-.055,.43],[.24,.28,.27]);
- ball(head,0xd69b7f,[side*.72,-.055,.625],[.105,.13,.055]);
- ball(head,skinColor,[side*.72,-.055,.645],[.065,.085,.025]);
+// 머리카락을 뒤통수와 옆머리 위주로 구성
+// 전체 구체 대신 앞쪽 아래 영역을 제거한 크롭 메시
+function createCroppedHair(){
+ const geometry=new THREE.SphereGeometry(1,64,48);
+ const pos=geometry.attributes.position;
+ const index=geometry.index;
+ const kept=[];
+
+ for(let i=0;i<index.count;i+=3){
+  const ids=[index.getX(i),index.getX(i+1),index.getX(i+2)];
+  const points=ids.map(id=>new THREE.Vector3().fromBufferAttribute(pos,id));
+
+  const center=new THREE.Vector3()
+   .add(points[0]).add(points[1]).add(points[2])
+   .multiplyScalar(1/3);
+
+  // 얼굴 앞쪽의 아래 영역을 잘라내어 얼굴이 드러나게 함
+  const removeFrontLower=center.z>.12 && center.y<.72;
+  if(!removeFrontLower)kept.push(...ids);
+ }
+
+ geometry.setIndex(kept);
+ geometry.computeVertexNormals();
+
+ const hair=new THREE.Mesh(
+  geometry,
+  new THREE.MeshStandardMaterial({
+   color:hairColor,
+   roughness:.92,
+   side:THREE.DoubleSide
+  })
+ );
+
+ hair.position.set(0,.015,-.055);
+ hair.scale.set(1.08,1.12,.88);
+ hair.castShadow=true;
+ hair.receiveShadow=true;
+ return hair;
 }
 
-// 앞머리
+head.add(createCroppedHair());
+
+// 옆머리: 얼굴 가장자리와 뒤통수에 겹치도록 연결
+for(const side of [-1,1]){
+ const sideHair=ball(
+  head,
+  hairColor,
+  [side*.77,-.02,.12],
+  [.31,.83,.58]
+ );
+ sideHair.rotation.z=side*.10;
+}
+
+// 귀: 얼굴 바깥에 튀어나오지 않도록 안쪽으로 묻어 배치
+for(const side of [-1,1]){
+ ball(
+  head,
+  skinColor,
+  [side*.775,-.07,.40],
+  [.235,.27,.235]
+ );
+}
+
+// 앞머리: 이마 곡면을 따라 붙는 넓은 한 덩어리
+// 머리카락의 밑부분이 얼굴 안으로 들어가도록 깊이를 겹침
 const bangShape=new THREE.Shape();
-bangShape.moveTo(-.78,.84);
-bangShape.bezierCurveTo(-.48,1.02,.40,1.02,.78,.84);
-bangShape.bezierCurveTo(.76,.62,.72,.46,.62,.39);
-bangShape.bezierCurveTo(.43,.52,.22,.50,0,.25);
-bangShape.bezierCurveTo(-.20,.50,-.43,.53,-.63,.39);
-bangShape.bezierCurveTo(-.74,.50,-.77,.68,-.78,.84);
+bangShape.moveTo(-.79,.79);
+bangShape.bezierCurveTo(-.55,.96,.45,.96,.79,.79);
+bangShape.bezierCurveTo(.78,.58,.73,.43,.62,.35);
+bangShape.bezierCurveTo(.43,.43,.25,.40,0,.20);
+bangShape.bezierCurveTo(-.22,.41,-.43,.44,-.63,.35);
+bangShape.bezierCurveTo(-.75,.49,-.78,.64,-.79,.79);
 bangShape.closePath();
 
 const bangGeometry=new THREE.ExtrudeGeometry(bangShape,{
- depth:.09,
+ depth:.12,
  bevelEnabled:true,
- bevelSegments:2,
+ bevelSegments:3,
  steps:1,
  bevelSize:.025,
- bevelThickness:.025
+ bevelThickness:.035,
+ curveSegments:24
 });
 
 const bang=new THREE.Mesh(
  bangGeometry,
- new THREE.MeshStandardMaterial({color:hairColor,roughness:.9})
+ new THREE.MeshStandardMaterial({
+  color:hairColor,
+  roughness:.92,
+  side:THREE.DoubleSide
+ })
 );
-bang.position.set(0,.02,.91);
+
+// 앞머리를 얼굴 표면 안쪽부터 시작해 겹치도록 배치
+bang.position.set(0,.015,1.005);
 bang.castShadow=true;
 bang.receiveShadow=true;
 head.add(bang);
 
-// 안경
+// 안경: 렌즈 두 개만 남김
 const glasses=new THREE.Group();
 head.add(glasses);
 
 for(const side of [-1,1]){
  const ring=new THREE.Mesh(
-  new THREE.TorusGeometry(.19,.027,8,28),
+  new THREE.TorusGeometry(.19,.027,8,32),
   mat(0x242424)
  );
  ring.position.set(side*.22,.015,1.045);
  glasses.add(ring);
 }
 
-for(const side of [-1,1]){
- const arm=box(glasses,0x242424,[side*.43,.015,.91],[.28,.035,.035],.015);
- arm.rotation.y=side*.35;
-}
+// 안경 다리와 코받침은 제거
 
 // 화난 눈썹
 const brows=new THREE.Group();
@@ -421,7 +443,7 @@ for(const side of [-1,1]){
  const b=box(
   brows,
   0x241d19,
-  [side*.22,.245,1.04],
+  [side*.22,.205,1.04],
   [.23,.05,.035],
   .015
  );
@@ -518,7 +540,10 @@ function makeItem(n){
  }else if(n==='벽돌'){
   box(g,0xa64e3d,[0,0,0],[.62,.35,.3],.035);
   for(const x of [-.17,0,.17]){
-   const hole=new THREE.Mesh(new THREE.CircleGeometry(.045,16),new THREE.MeshBasicMaterial({color:0x663a30}));
+   const hole=new THREE.Mesh(
+    new THREE.CircleGeometry(.045,16),
+    new THREE.MeshBasicMaterial({color:0x663a30})
+   );
    hole.position.set(x,.02,.154);
    g.add(hole);
   }
@@ -528,13 +553,19 @@ function makeItem(n){
   capsule(g,0x79532f,[.16,.12,0],.045,.35,[0,0,.8]);
 
  }else if(n==='옥수수'){
-  const corn=new THREE.Mesh(new THREE.CapsuleGeometry(.22,.72,12,32),mat(0xf4c52e));
+  const corn=new THREE.Mesh(
+   new THREE.CapsuleGeometry(.22,.72,12,32),
+   mat(0xf4c52e)
+  );
   corn.rotation.z=Math.PI/2;
   corn.castShadow=true;
   corn.receiveShadow=true;
   g.add(corn);
 
-  const greenTip=new THREE.Mesh(new THREE.CapsuleGeometry(.17,.08,8,20),mat(0x4f8745));
+  const greenTip=new THREE.Mesh(
+   new THREE.CapsuleGeometry(.17,.08,8,20),
+   mat(0x4f8745)
+  );
   greenTip.rotation.z=Math.PI/2;
   greenTip.position.set(-.48,0,.015);
   greenTip.castShadow=true;
@@ -545,7 +576,10 @@ function makeItem(n){
   box(g,0xf3e8d0,[0,0,0],[.62,.48,.035],.015);
   const ink=new THREE.MeshBasicMaterial({color:0x302c29});
 
-  const outline=new THREE.Mesh(new THREE.TorusGeometry(.13,.012,6,24),ink);
+  const outline=new THREE.Mesh(
+   new THREE.TorusGeometry(.13,.012,6,24),
+   ink
+  );
   outline.position.set(0,-.015,.035);
   g.add(outline);
 
@@ -592,7 +626,6 @@ function spawn(){
  name=nextName();
  item=makeItem(name);
  holder.add(item);
-
  holder.position.set(0,2.75,3.65);
  holder.scale.setScalar(2.5);
  itemTimer=0;
