@@ -285,9 +285,9 @@ for(const side of [-1,1]){
 
 // 멜빵
 for(const side of [-1,1]){
- box(body,0x76553d,[side*.31,.15,.405],[.17,1.35,.09],.035);
- box(body,0xa17a54,[side*.31,.64,.465],[.23,.18,.065],.035);
- box(body,0x684b36,[side*.31,-.48,.455],[.18,.12,.06],.025);
+ box(body,0x76553d,[side*.31,.05,.405],[.17,1.35,.09],.035);
+ box(body,0xa17a54,[side*.31,.54,.465],[.23,.18,.065],.035);
+ box(body,0x684b36,[side*.31,-.58,.455],[.18,.12,.06],.025);
 }
 
 // =====================================================
@@ -496,9 +496,8 @@ function createArm(color,cuffColor,foldColor){
  cuffFold.receiveShadow=true;
  group.add(cuffFold);
 
- // 손은 손가락 없이 둥근 한 덩이
- const hand=ball(group,0xf0c6a5,[0,0,0],[.23,.22,.23]);
-
+ // 손은 손가락 없이 둥근 한 덩이, 크기 2배
+const hand=ball(group,0xf0c6a5,[0,0,0],[.46,.44,.46]);
  return {group,sleeve,cuff,cuffFold,hand};
 }
 
