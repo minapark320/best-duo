@@ -7,7 +7,7 @@
 <title>환상의 짝꿍</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#dcecf0;font-family:Arial,"Noto Sans KR",sans-serif}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9bcbd9;font-family:Arial,"Noto Sans KR",sans-serif}
 #game{position:fixed;inset:0}
 canvas{display:block;width:100%;height:100%;touch-action:none}
 .hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:3;pointer-events:none}
@@ -15,7 +15,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 .logo{padding:13px 17px;border-radius:16px;font-size:18px;font-weight:900}
 .stats{display:flex;gap:7px}
 .stat{min-width:68px;padding:9px 12px;border-radius:15px;text-align:center}
-.stat small{display:block;font-size:11px;color:#8a9a8e}
+.stat small{display:block;font-size:11px;color:#788c7d}
 .stat strong{font-size:23px}
 #speech{position:fixed;z-index:3;top:19%;left:50%;transform:translateX(-50%);padding:8px 16px;background:#f7f0dfed;color:#52675d;border:1px solid #fffaf0;border-radius:18px;font-size:15px;font-weight:700;white-space:nowrap;box-shadow:0 3px 10px #53675b20;pointer-events:none}
 #speech:before{content:"";position:absolute;top:-10px;left:50%;transform:translateX(-50%);border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:11px solid #f7f0dfed}
@@ -24,7 +24,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 #hint{position:fixed;left:18px;right:18px;bottom:calc(17px + env(safe-area-inset-bottom));min-height:52px;display:flex;align-items:center;justify-content:center;gap:22px;padding:10px 14px;z-index:4;border-radius:15px;background:#f6eedc;color:#61766a;font-size:clamp(12px,3.5vw,15px);font-weight:800;pointer-events:none}
 .guide-part{display:flex;align-items:center;gap:7px;white-space:nowrap}
 .guide-arrow{font-size:23px;line-height:1;color:#829b85;font-weight:900}
-.overlay{position:fixed;inset:0;display:grid;place-items:center;padding:20px;z-index:5;background:#33453d70}
+.overlay{position:fixed;inset:0;display:grid;place-items:center;padding:20px;z-index:5;background:#263b3d80}
 .panel{width:min(390px,100%);max-height:92dvh;overflow:auto;background:#fff8e9;color:#40564b;border:2px solid white;border-radius:24px;padding:25px 20px;text-align:center;box-shadow:0 14px 40px #263b3c35}
 .panel h1{font-size:30px;margin:0 0 12px}
 .panel p{line-height:1.7}
@@ -43,7 +43,6 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #c9975b}
 </head>
 <body>
 <div id="game"></div>
-
 <div class="hud">
  <div class="logo">환상의 짝꿍</div>
  <div class="stats">
@@ -51,39 +50,26 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #c9975b}
   <div class="stat"><small>훔친 물건</small><strong id="score">0</strong></div>
  </div>
 </div>
-
 <div id="speech" class="hidden">척하면 척!</div>
 <div id="hint" class="hidden">
  <div class="guide-part"><span class="guide-arrow">↓</span><span>아래로 드래그: 받기</span></div>
  <div class="guide-part"><span class="guide-arrow">↑</span><span>위로 드래그: 쳐내기</span></div>
 </div>
-
 <div class="overlay" id="start">
  <div class="panel">
   <div class="speech-preview">덕형과 한길의 완벽한 팀워크!</div>
   <div class="intro">나는 최고의<br>소매치기!</div>
   <div class="intro-sub">쥐도 새도 모르게 지갑만 쏙!<br>여유로운 행인의 주머니를 털어라!</div>
   <div class="item-preview">
-   <div class="preview-card">
-    <svg viewBox="0 0 60 48"><rect x="7" y="10" width="46" height="29" rx="6" fill="#98775f"/><rect x="10" y="13" width="40" height="22" rx="4" fill="#b99a7c"/><circle cx="44" cy="24" r="3" fill="#e6cda0"/></svg><span>지갑</span>
-   </div>
-   <div class="preview-card">
-    <svg viewBox="0 0 60 48"><rect x="6" y="9" width="48" height="30" rx="2" fill="#f7f0dc" stroke="#bdb39a"/><rect x="10" y="13" width="40" height="22" fill="#e6e9d8"/><circle cx="30" cy="24" r="8" fill="none" stroke="#718b92" stroke-width="2"/><path d="M13 18h8M39 30h8" stroke="#718b92" stroke-width="2"/></svg><span>돈</span>
-   </div>
-   <div class="preview-card">
-    <svg viewBox="0 0 60 48"><rect x="17" y="5" width="26" height="39" rx="4" fill="#eee8d8" stroke="#c9bda6"/><rect x="17" y="5" width="26" height="12" rx="3" fill="#c77d75"/><rect x="17" y="31" width="26" height="13" fill="#e8e5dd"/></svg><span>담뱃갑</span>
-   </div>
-   <div class="preview-card">
-    <svg viewBox="0 0 60 48"><path d="M11 27 Q14 8 31 8 Q47 8 49 27 Z" fill="#7897aa"/><path d="M8 27 Q30 23 53 29 Q47 37 25 35 Q12 34 8 27" fill="#5d7e94"/></svg><span>모자</span>
-   </div>
-   <div class="preview-card">
-    <svg viewBox="0 0 60 48"><rect x="19" y="5" width="22" height="38" rx="7" fill="#bdc8c8"/><rect x="19" y="5" width="22" height="19" rx="7" fill="#e0e5df"/><rect x="19" y="24" width="22" height="19" fill="#bdc8c8"/></svg><span>라이터</span>
-   </div>
+   <div class="preview-card"><svg viewBox="0 0 60 48"><rect x="7" y="10" width="46" height="29" rx="6" fill="#98775f"/><rect x="10" y="13" width="40" height="22" rx="4" fill="#b99a7c"/><circle cx="44" cy="24" r="3" fill="#e6cda0"/></svg><span>지갑</span></div>
+   <div class="preview-card"><svg viewBox="0 0 60 48"><rect x="6" y="9" width="48" height="30" rx="2" fill="#f7f0dc" stroke="#bdb39a"/><rect x="10" y="13" width="40" height="22" fill="#e6e9d8"/><circle cx="30" cy="24" r="8" fill="none" stroke="#718b92" stroke-width="2"/><path d="M13 18h8M39 30h8" stroke="#718b92" stroke-width="2"/></svg><span>돈</span></div>
+   <div class="preview-card"><svg viewBox="0 0 60 48"><rect x="17" y="5" width="26" height="39" rx="4" fill="#eee8d8" stroke="#c9bda6"/><rect x="17" y="5" width="26" height="12" rx="3" fill="#c77d75"/><rect x="17" y="31" width="26" height="13" fill="#e8e5dd"/></svg><span>담뱃갑</span></div>
+   <div class="preview-card"><svg viewBox="0 0 60 48"><path d="M11 27 Q14 8 31 8 Q47 8 49 27 Z" fill="#7897aa"/><path d="M8 27 Q30 23 53 29 Q47 37 25 35 Q12 34 8 27" fill="#5d7e94"/></svg><span>모자</span></div>
+   <div class="preview-card"><svg viewBox="0 0 60 48"><rect x="19" y="5" width="22" height="38" rx="7" fill="#bdc8c8"/><rect x="19" y="5" width="22" height="19" rx="7" fill="#e0e5df"/><rect x="19" y="24" width="22" height="19" fill="#bdc8c8"/></svg><span>라이터</span></div>
   </div>
   <button id="startBtn">작전 시작</button>
  </div>
 </div>
-
 <div class="overlay hidden" id="end">
  <div class="panel">
   <h1>작전 발각!</h1>
@@ -96,16 +82,14 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #c9975b}
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
-
 <script type="module">
 import * as THREE from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 const $=id=>document.getElementById(id);
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0xc9e2e8);
-scene.fog=new THREE.Fog(0xc9e2e8,30,70);
-
+scene.background=new THREE.Color(0x9bcbd9);
+scene.fog=new THREE.Fog(0x9bcbd9,38,85);
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,150);
 camera.position.set(0,4.8,11.8);
 camera.lookAt(0,3.65,0);
@@ -117,11 +101,11 @@ renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.05;
+renderer.toneMappingExposure=.88;
 $('game').appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xf4fbff,0xb3a995,2.2));
-const sun=new THREE.DirectionalLight(0xfff3dc,2.1);
+scene.add(new THREE.HemisphereLight(0xf4fbff,0x8b8068,1.5));
+const sun=new THREE.DirectionalLight(0xfff0d8,1.65);
 sun.position.set(-5,12,8);
 sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
@@ -145,7 +129,7 @@ function capsule(p,c,pos,r,l,rot=[0,0,0]){
 let audioContext=null;
 function initAudio(){
  try{
-  if(!audioContext){const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;audioContext=new AudioCtx()}
+  if(!audioContext){const A=window.AudioContext||window.webkitAudioContext;if(!A)return;audioContext=new A()}
   if(audioContext.state==='suspended')audioContext.resume();
  }catch(e){}
 }
@@ -154,7 +138,9 @@ function tone(freq,start,duration,type='sine',volume=.15,endFreq=null){
  const osc=audioContext.createOscillator(),gain=audioContext.createGain();
  osc.type=type;osc.frequency.setValueAtTime(freq,start);
  if(endFreq!==null)osc.frequency.exponentialRampToValueAtTime(Math.max(1,endFreq),start+duration);
- gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(volume,start+.012);gain.gain.exponentialRampToValueAtTime(.001,start+duration);
+ gain.gain.setValueAtTime(.001,start);
+ gain.gain.exponentialRampToValueAtTime(volume,start+.012);
+ gain.gain.exponentialRampToValueAtTime(.001,start+duration);
  osc.connect(gain);gain.connect(audioContext.destination);osc.start(start);osc.stop(start+duration+.02);
 }
 function noiseBurst(start,duration,volume=.2,filterFreq=1200){
@@ -175,33 +161,34 @@ function playSfx(type){
   tone(880,now,.16,'sine',.18,1180);tone(1320,now+.09,.22,'sine',.13,1580);tone(1760,now+.17,.18,'sine',.07,1900);
  }else if(type==='deflect'){
   tone(155,now,.19,'triangle',.3,75);tone(95,now+.015,.16,'sine',.2,55);noiseBurst(now,.18,.2,1500);tone(430,now+.055,.1,'triangle',.08,220);
- }else if(type==='wrong'){
+ }else if(type==='wrong){
   tone(180,now,.3,'sawtooth',.2,75);tone(110,now+.04,.25,'triangle',.16,55);
  }else if(type==='gameover'){
   tone(220,now,.38,'triangle',.2,130);tone(155,now+.22,.48,'sawtooth',.16,65);tone(75,now+.35,.55,'sine',.2,42);
  }
 }
 
-// 배경
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(100,100),mat(0xb8c9a4));
+// 배경: 탁한 파스텔 대신 선명한 색상
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(100,100),mat(0x789d58));
 ground.rotation.x=-Math.PI/2;ground.position.y=-.15;scene.add(ground);
-const road=new THREE.Mesh(new THREE.PlaneGeometry(8,70),mat(0xe5d7b9));
+const road=new THREE.Mesh(new THREE.PlaneGeometry(8,70),mat(0xcbb58e));
 road.rotation.x=-Math.PI/2;road.position.set(0,-.07,-15);scene.add(road);
-
 for(let i=0;i<45;i++){
- const s=.035+Math.random()*.08,stone=new THREE.Mesh(new THREE.DodecahedronGeometry(s),mat(0xc5bba7));
+ const s=.035+Math.random()*.08,stone=new THREE.Mesh(new THREE.DodecahedronGeometry(s),mat(0xb6a98d));
  stone.position.set((Math.random()-.5)*6,-.015,-30+Math.random()*35);stone.scale.set(1.5,.4,1);scene.add(stone);
 }
 for(const side of [-1,1]){
- for(let i=0;i<10;i++)box(scene,0xa58b70,[side*5.2,.5,-27+i*3],[.14,1,.14],.04);
- for(const y of [.42,.82])box(scene,0xb7a187,[side*5.2,y,-13],[.12,.12,30],.03);
+ for(let i=0;i<10;i++)box(scene,0x8c7154,[side*5.2,.5,-27+i*3],[.14,1,.14],.04);
+ for(const y of [.42,.82])box(scene,0xa18a68,[side*5.2,y,-13],[.12,.12,30],.03);
 }
 for(let i=0;i<12;i++){
- const h=2+Math.random()*3;ball(scene,0xa9c69c,[-22+i*4,h*.25,-27],[7,h*2,4]);
+ const h=2+Math.random()*3;ball(scene,0x67965a,[-22+i*4,h*.25,-27],[7,h*2,4]);
 }
 for(let i=0;i<7;i++){
  const cloud=new THREE.Group();
- ball(cloud,0xfffaf0,[0,0,0],[3,.8,1.3]);ball(cloud,0xfffaf0,[-.8,-.1,0],[1.7,.8,1.2]);ball(cloud,0xfffaf0,[.9,-.1,0],[1.8,.9,1.2]);
+ ball(cloud,0xf5f1e6,[0,0,0],[3,.8,1.3]);
+ ball(cloud,0xf5f1e6,[-.8,-.1,0],[1.7,.8,1.2]);
+ ball(cloud,0xf5f1e6,[.9,-.1,0],[1.8,.9,1.2]);
  cloud.position.set(-13+i*4,9+(i%3),-20);scene.add(cloud);
 }
 
@@ -209,109 +196,94 @@ for(let i=0;i<7;i++){
 const victim=new THREE.Group();
 scene.add(victim);victim.position.set(0,-.35,-.3);victim.scale.setScalar(3.075);
 const body=new THREE.Group();body.position.set(0,.9,0);victim.add(body);
-
-// 상의
-box(body,0xf0eee5,[0,0,0],[1.25,1.55,.65],.16);
+box(body,0xe8e4d9,[0,0,0],[1.25,1.55,.65],.16);
 capsule(body,0xe8b99b,[0,.88,0],.18,.2);
-
-// 팔
 for(const side of [-1,1]){
- box(body,0xf0eee5,[side*.65,.13,0],[.38,1.05,.58],.18);
+ box(body,0xe8e4d9,[side*.65,.13,0],[.38,1.05,.58],.18);
  ball(body,0xe8b99b,[side*.65,-.42,.02],[.22,.22,.22]);
 }
-
-// 바지와 신발
-box(body,0x927253,[0,-.83,0],[1.22,.48,.66],.09);
+box(body,0x806044,[0,-.83,0],[1.22,.48,.66],.09);
 for(const side of [-1,1]){
- box(body,0x806047,[side*.32,-1.63,0],[.54,1.55,.62],.11);
- box(body,0x71513b,[side*.32,-2.43,.015],[.56,.12,.64],.035);
- box(body,0x5b493a,[side*.32,-2.57,.12],[.58,.22,.82],.08);
+ box(body,0x76553d,[side*.32,-1.63,0],[.54,1.55,.62],.11);
+ box(body,0x684b36,[side*.32,-2.43,.015],[.56,.12,.64],.035);
+ box(body,0x514333,[side*.32,-2.57,.12],[.58,.22,.82],.08);
 }
 for(const side of [-1,1]){
- box(body,0x927253,[side*.31,.04,.345],[.13,1.24,.07],.025);
- box(body,0xb08b65,[side*.31,.58,.39],[.17,.12,.035],.02);
+ box(body,0x806044,[side*.31,.04,.345],[.13,1.24,.07],.025);
+ box(body,0xa17a54,[side*.31,.58,.39],[.17,.12,.035],.02);
 }
 
-// 자경이 머리
+// 머리: 짙은 갈색 머리통 + 얼굴 + 머리통에 붙는 앞머리
 const head=new THREE.Group();
-head.position.set(0,2.0,0);
+head.position.set(0,2,0);
 victim.add(head);
-
-const hairColor=0x40332e;
+const hairColor=0x35251f;
 const skinColor=0xe8b99b;
 
-// 머리통: 짙은 갈색 구체 하나로 작고 단순하게 제작
-// 얼굴은 머리통 앞면에 겹쳐 붙이는 구조
+// 머리통
 ball(head,hairColor,[0,.015,0],[.92,.98,.76]);
 
-// 얼굴: 눈, 코, 입 없이 매끈한 타원형
+// 얼굴은 머리통 앞면에 겹쳐 붙임
 ball(head,skinColor,[0,-.015,.40],[.88,.94,.67]);
 
-// 안경: 작고 얇은 테
+// 앞머리: 머리통과 얼굴 표면에 겹쳐 밀착된 한 덩어리
+// 앞쪽으로 튀어나오지 않도록 얇고 납작하게 배치
+const fringe=new THREE.Group();
+head.add(fringe);
+const fringeBase=ball(fringe,hairColor,[0,.54,.79],[.72,.25,.20]);
+
+// 앞머리 아래쪽의 자연스러운 둥근 곡선
+ball(fringe,hairColor,[-.34,.46,.88],[.28,.17,.12]);
+ball(fringe,hairColor,[0,.43,.91],[.31,.16,.12]);
+ball(fringe,hairColor,[.34,.46,.88],[.28,.17,.12]);
+
+// 얼굴에는 눈, 코, 입 없음. 안경만 표시
 const glasses=new THREE.Group();
 head.add(glasses);
-const glassesMaterial=mat(0x393633);
+const glassesMaterial=mat(0x302d2a);
 
+// 안경을 기존 크기의 절반으로 축소
 for(const side of [-1,1]){
  const ring=new THREE.Mesh(
-  new THREE.TorusGeometry(.145,.018,8,32),
+  new THREE.TorusGeometry(.0725,.009,8,32),
   glassesMaterial
  );
- ring.position.set(side*.175,-.005,1.055);
+ ring.position.set(side*.0875,-.005,1.075);
  glasses.add(ring);
 }
-
-const bridge=new THREE.Mesh(
- new THREE.BoxGeometry(.065,.018,.018),
- glassesMaterial
-);
-bridge.position.set(0,-.005,1.055);
+const bridge=new THREE.Mesh(new THREE.BoxGeometry(.0325,.009,.009),glassesMaterial);
+bridge.position.set(0,-.005,1.075);
 glasses.add(bridge);
-
 for(const side of [-1,1]){
- const arm=new THREE.Mesh(
-  new THREE.BoxGeometry(.12,.018,.018),
-  glassesMaterial
- );
- arm.position.set(side*.31,-.005,1.02);
+ const arm=new THREE.Mesh(new THREE.BoxGeometry(.06,.009,.009),glassesMaterial);
+ arm.position.set(side*.155,-.005,1.055);
  arm.rotation.y=side*.25;
  glasses.add(arm);
 }
 
-// 화난 눈썹: 게임오버 때만 표시
+// 게임오버 때만 보이는 화난 눈썹
 const brows=new THREE.Group();
 head.add(brows);
-
 for(const side of [-1,1]){
- const b=box(
-  brows,
-  0x40332e,
-  [side*.18,.18,1.055],
-  [.17,.035,.025],
-  .012
- );
+ const b=box(brows,0x35251f,[side*.09,.10,1.075],[.085,.018,.012],.006);
  b.rotation.z=side<0?-.28:.28;
 }
 brows.visible=false;
 
-// 플레이어 양팔과 접힌 소매
+// 플레이어 양팔
 function createArm(color,cuffColor,foldColor){
- const group=new THREE.Group();
- scene.add(group);
+ const group=new THREE.Group();scene.add(group);
  const sleeve=box(group,color,[0,0,0],[1.25,1,.78],.28);
  const cuff=box(group,cuffColor,[0,0,0],[1.31,.25,.86],.10);
  const cuffFold=box(group,foldColor,[0,0,0],[1.30,.10,.87],.045);
- const hand=new THREE.Group();
- group.add(hand);
+ const hand=new THREE.Group();group.add(hand);
  ball(hand,0xf0c6a5,[0,0,0],[1.48,1.32,1.25]);
  return {group,sleeve,cuff,cuffFold,hand};
 }
-
-const leftArm=createArm(0x527746,0x9bb58b,0x6f916c);
-const rightArm=createArm(0x557d72,0xb2c8b8,0x78998c);
-
-const leftShoulder=new THREE.Vector3(-2.55,4.0,2.8);
-const rightShoulder=new THREE.Vector3(2.55,4.0,2.8);
+const leftArm=createArm(0x416b35,0x91aa7d,0x668b58);
+const rightArm=createArm(0x386c60,0xa2bcae,0x648e80);
+const leftShoulder=new THREE.Vector3(-2.55,4,2.8);
+const rightShoulder=new THREE.Vector3(2.55,4,2.8);
 const leftBase=new THREE.Vector3(-.65,2.65,2.55);
 const rightBase=new THREE.Vector3(.65,2.65,2.55);
 let leftWrist=leftBase.clone(),rightWrist=rightBase.clone(),rightTarget=rightBase.clone();
@@ -327,13 +299,12 @@ function aimArm(arm,shoulder,wrist){
  arm.hand.position.set(0,length*.5-.04,0);
 }
 
-// 물건
-const holder=new THREE.Group();
-scene.add(holder);
+// 아이템
+const holder=new THREE.Group();scene.add(holder);
 const names=['지갑','돈','담뱃갑','모자','라이터','돌','벽돌','막대기','수배 전단지','옥수수'];
 const catchSet=new Set(['지갑','돈','담뱃갑','모자','라이터']);
 let item=null,name='',itemTimer=0,spawnTimer=0;
-let score=0,time=60,active=false,combo=0,lastName='',repeat=0;
+let score=0,time=60,active=false,lastName='',repeat=0;
 let dragging=false,startY=0,dragY=0;
 let turning=false,turnProgress=0,leftProgress=0,leftMoving=false,phraseIndex=0;
 
@@ -374,8 +345,8 @@ function makeItem(n){
  }else if(n==='옥수수'){
   const corn=new THREE.Mesh(new THREE.CapsuleGeometry(.22,.72,12,32),mat(0xe9cf72));
   corn.rotation.z=Math.PI/2;corn.castShadow=true;corn.receiveShadow=true;g.add(corn);
-  const greenTip=new THREE.Mesh(new THREE.CapsuleGeometry(.17,.08,8,20),mat(0x91ad83));
-  greenTip.rotation.z=Math.PI/2;greenTip.position.set(-.48,0,.015);greenTip.castShadow=true;greenTip.receiveShadow=true;g.add(greenTip);
+  const tip=new THREE.Mesh(new THREE.CapsuleGeometry(.17,.08,8,20),mat(0x779b55));
+  tip.rotation.z=Math.PI/2;tip.position.set(-.48,0,.015);tip.castShadow=true;tip.receiveShadow=true;g.add(tip);
  }else if(n==='수배 전단지'){
   box(g,0xf3e8d0,[0,0,0],[.62,.48,.035],.015);
   const ink=new THREE.MeshBasicMaterial({color:0x514a43});
@@ -386,10 +357,8 @@ function makeItem(n){
    eye.position.set(x,.015,.052);g.add(eye);
   }
   const curve=new THREE.CatmullRomCurve3([
-   new THREE.Vector3(-.07,-.08,.05),
-   new THREE.Vector3(-.035,-.105,.05),
-   new THREE.Vector3(0,-.08,.05),
-   new THREE.Vector3(.035,-.105,.05),
+   new THREE.Vector3(-.07,-.08,.05),new THREE.Vector3(-.035,-.105,.05),
+   new THREE.Vector3(0,-.08,.05),new THREE.Vector3(.035,-.105,.05),
    new THREE.Vector3(.07,-.08,.05)
   ]);
   g.add(new THREE.Mesh(new THREE.TubeGeometry(curve,20,.009,6,false),ink));
@@ -397,7 +366,6 @@ function makeItem(n){
  }
  return g;
 }
-
 function nextName(){
  let n;
  do{n=names[Math.floor(Math.random()*names.length)]}while(n===lastName&&repeat>=2);
@@ -411,8 +379,8 @@ function showPhrase(){
 }
 function spawn(){
  name=nextName();item=makeItem(name);holder.add(item);
- holder.position.set(0,2.75,3.65);holder.scale.setScalar(2.5);itemTimer=0;
- leftProgress=0;leftMoving=true;showPhrase();playSfx('spawn');
+ holder.position.set(0,2.75,3.65);holder.scale.setScalar(2.5);
+ itemTimer=0;leftProgress=0;leftMoving=true;showPhrase();playSfx('spawn');
 }
 function clearItem(){if(item){holder.remove(item);item=null}}
 function finish(){
@@ -427,11 +395,11 @@ function judge(direction){
  if(!correct){playSfx('wrong');finish();return}
  if(shouldCatch){score++;$('score').textContent=score;playSfx('catch')}
  else playSfx('deflect');
- combo++;clearItem();leftMoving=false;leftWrist.copy(leftBase);
+ clearItem();leftMoving=false;leftWrist.copy(leftBase);
  spawnTimer=Math.max(.25,.65-(60-time)*.006);
 }
 
-// 터치 조작
+// 드래그
 renderer.domElement.addEventListener('pointerdown',e=>{
  if(!active||!item)return;
  dragging=true;startY=e.clientY;dragY=0;rightTarget.copy(rightBase);
@@ -450,7 +418,7 @@ window.addEventListener('pointerup',()=>{
 });
 
 function startGame(){
- initAudio();active=true;time=60;score=0;combo=0;spawnTimer=.35;lastName='';repeat=0;
+ initAudio();active=true;time=60;score=0;spawnTimer=.35;lastName='';repeat=0;
  turning=false;turnProgress=0;phraseIndex=0;leftProgress=0;leftMoving=false;
  victim.rotation.y=Math.PI;brows.visible=false;
  leftWrist.copy(leftBase);rightWrist.copy(rightBase);rightTarget.copy(rightBase);clearItem();
@@ -481,7 +449,6 @@ function animate(now){
  rightWrist.lerp(rightTarget,armEase);
  aimArm(leftArm,leftShoulder,leftWrist);
  aimArm(rightArm,rightShoulder,rightWrist);
-
  if(turning){
   turnProgress=Math.min(1,turnProgress+dt*1.6);
   const eased=1-Math.pow(1-turnProgress,3);
