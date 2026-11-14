@@ -276,47 +276,55 @@ for(const side of [-1,1]){
 
 box(body,0x806044,[0,-.83,0],[1.22,.48,.66],.09);
 
-// 바지 길이 연장
+// 바지
 for(const side of [-1,1]){
  box(body,0x76553d,[side*.32,-1.79,0],[.54,1.92,.62],.11);
  box(body,0x684b36,[side*.32,-2.72,.015],[.56,.12,.64],.035);
  box(body,0x514333,[side*.32,-2.86,.12],[.58,.22,.82],.08);
 }
 
-// 멜빵: 몸 앞쪽으로 이동하고 폭과 버클 확대
+// 멜빵
 for(const side of [-1,1]){
  box(body,0x76553d,[side*.31,.15,.405],[.17,1.35,.09],.035);
  box(body,0xa17a54,[side*.31,.64,.465],[.23,.18,.065],.035);
  box(body,0x684b36,[side*.31,-.48,.455],[.18,.12,.06],.025);
 }
 
-// 머리
+// 머리: 하나의 그룹 안에 두상, 머리카락, 안경을 모두 배치
 const head=new THREE.Group();
-// 머리를 아래로 내려 목과 몸에 밀착
 head.position.set(0,1.78,0);
 victim.add(head);
 
 const hairColor=0x35251f;
 const skinColor=0xe8b99b;
 
-// 뒤통수만 검은색으로 유지
-// 얼굴 앞쪽으로 머리카락이 넘어오지 않도록 뒤로 이동
-ball(head,hairColor,[0,.015,-.27],[.92,.98,.76]);
+// 목과 머리 아래쪽이 겹치도록 목을 머리 뒤에 배치
+const neck=ball(head,skinColor,[0,-.40,-.02],[.34,.48,.38]);
 
-// 얼굴
-ball(head,skinColor,[0,-.015,.40],[.88,.94,.67]);
+// 두상은 하나의 살구색 타원형
+ball(head,skinColor,[0,.02,.08],[.92,.98,.76]);
 
-// 앞머리 베이스
+// 뒤통수 머리카락은 두상 뒤쪽에 얇게 겹침
+ball(head,hairColor,[0,.015,-.36],[.91,.96,.49]);
+
+// 윗머리 캡: 머리 위쪽만 덮는 형태
+const capGeo=new THREE.SphereGeometry(.5,40,28,0,Math.PI*2,0,Math.PI*.48);
+const capMesh=new THREE.Mesh(capGeo,mat(hairColor));
+capMesh.position.set(0,.025,.04);
+capMesh.scale.set(.925,.99,.78);
+capMesh.castShadow=true;
+capMesh.receiveShadow=true;
+head.add(capMesh);
+
+// 앞머리: 이마 윗부분 표면에 붙여 배치
 const fringe=new THREE.Group();
 head.add(fringe);
+ball(fringe,hairColor,[0,.49,.70],[.68,.17,.105]);
+ball(fringe,hairColor,[-.28,.405,.755],[.28,.12,.075]);
+ball(fringe,hairColor,[0,.39,.78],[.30,.13,.075]);
+ball(fringe,hairColor,[.28,.405,.755],[.28,.12,.075]);
 
-// 얼굴 위쪽에 붙는 둥근 앞머리
-ball(fringe,hairColor,[0,.49,.77],[.69,.20,.13]);
-ball(fringe,hairColor,[-.29,.405,.85],[.29,.135,.09]);
-ball(fringe,hairColor,[0,.385,.88],[.32,.145,.09]);
-ball(fringe,hairColor,[.29,.405,.85],[.29,.135,.09]);
-
-// 안경
+// 안경: 얼굴 표면 가까이에 배치
 const glasses=new THREE.Group();
 head.add(glasses);
 const glassesMaterial=mat(0x302d2a);
@@ -326,14 +334,14 @@ for(const side of [-1,1]){
   new THREE.TorusGeometry(.145,.018,8,40),
   glassesMaterial
  );
- ring.position.set(side*.175,-.005,1.075);
+ ring.position.set(side*.175,-.045,.795);
  glasses.add(ring);
 }
 const bridge=new THREE.Mesh(
  new THREE.BoxGeometry(.065,.018,.018),
  glassesMaterial
 );
-bridge.position.set(0,-.005,1.075);
+bridge.position.set(0,-.045,.80);
 glasses.add(bridge);
 
 for(const side of [-1,1]){
@@ -341,7 +349,7 @@ for(const side of [-1,1]){
   new THREE.BoxGeometry(.12,.018,.018),
   glassesMaterial
  );
- arm.position.set(side*.31,-.005,1.045);
+ arm.position.set(side*.31,-.045,.72);
  arm.rotation.y=side*.25;
  glasses.add(arm);
 }
@@ -349,9 +357,8 @@ for(const side of [-1,1]){
 // 화난 눈썹
 const brows=new THREE.Group();
 head.add(brows);
-
 for(const side of [-1,1]){
- const b=box(brows,0x35251f,[side*.18,.17,1.075],[.17,.035,.018],.012);
+ const b=box(brows,0x35251f,[side*.18,.17,.79],[.17,.035,.018],.012);
  b.rotation.z=side<0?-.28:.28;
 }
 brows.visible=false;
@@ -388,14 +395,9 @@ function aimArm(arm,shoulder,wrist){
 
  arm.group.position.copy(shoulder).add(wrist).multiplyScalar(.5);
  arm.group.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction);
-
- // 소매를 전면으로 넓게 보이도록
  arm.sleeve.scale.set(1.13,length,1.18);
-
  arm.cuff.position.set(0,length*.5-.25,.045);
  arm.cuffFold.position.set(0,length*.5-.14,.065);
-
- // 손을 소매 끝보다 앞으로 내밀어 겹치게 배치
  arm.hand.position.set(0,length*.5+.02,.22);
  arm.hand.scale.set(1.05,.92,.95);
 }
@@ -450,10 +452,7 @@ function makeItem(n){
  }else if(n==='벽돌'){
   box(g,0xc77e70,[0,0,0],[.62,.35,.3],.035);
   for(const x of [-.17,0,.17]){
-   const hole=new THREE.Mesh(
-    new THREE.CircleGeometry(.045,16),
-    new THREE.MeshBasicMaterial({color:0x98675d})
-   );
+   const hole=new THREE.Mesh(new THREE.CircleGeometry(.045,16),new THREE.MeshBasicMaterial({color:0x98675d}));
    hole.position.set(x,.02,.154);
    g.add(hole);
   }
@@ -463,19 +462,13 @@ function makeItem(n){
   capsule(g,0x947653,[.16,.12,0],.045,.35,[0,0,.8]);
 
  }else if(n==='옥수수'){
-  const corn=new THREE.Mesh(
-   new THREE.CapsuleGeometry(.22,.72,12,32),
-   mat(0xe9cf72)
-  );
+  const corn=new THREE.Mesh(new THREE.CapsuleGeometry(.22,.72,12,32),mat(0xe9cf72));
   corn.rotation.z=Math.PI/2;
   corn.castShadow=true;
   corn.receiveShadow=true;
   g.add(corn);
 
-  const tip=new THREE.Mesh(
-   new THREE.CapsuleGeometry(.17,.08,8,20),
-   mat(0x779b55)
-  );
+  const tip=new THREE.Mesh(new THREE.CapsuleGeometry(.17,.08,8,20),mat(0x779b55));
   tip.rotation.z=Math.PI/2;
   tip.position.set(-.48,0,.015);
   tip.castShadow=true;
@@ -486,9 +479,7 @@ function makeItem(n){
   box(g,0xf3e8d0,[0,0,0],[.62,.48,.035],.015);
   const ink=new THREE.MeshBasicMaterial({color:0x514a43});
 
-  const outline=new THREE.Mesh(
-   new THREE.TorusGeometry(.13,.012,6,24),ink
-  );
+  const outline=new THREE.Mesh(new THREE.TorusGeometry(.13,.012,6,24),ink);
   outline.position.set(0,-.015,.035);
   g.add(outline);
 
