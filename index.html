@@ -252,32 +252,55 @@ victim.add(head);
 // 검은 머리 전체
 ball(head,0x211b1b,[0,0,0],[1.08,1.12,.96]);
 
-// 얼굴: 머리 앞쪽으로 깊게 겹쳐 붙임
+// 얼굴을 검은 머리 앞쪽에 충분히 겹쳐 배치
 ball(head,0xe8b18f,[0,-.015,.49],[.88,.94,.64]);
 
-// 귀: 머리와 얼굴 사이에 깊숙이 넣어 연결
-// 귀 중심을 머리 쪽으로 옮기고 얼굴과도 겹치게 배치
+// 귀: 얼굴 좌우 가장자리에 깊숙하게 겹쳐 연결
+// 귀 바깥 실루엣이 얼굴과 머리에 붙어 보이도록 위치 조정
 for(const side of [-1,1]){
+ // 귀 바깥쪽 살
  ball(
   head,
   0xe8b18f,
-  [side*.76,-.035,.34],
-  [.31,.34,.32]
+  [side*.735,-.045,.66],
+  [.285,.30,.245]
+ );
+
+ // 귀 안쪽의 얕은 음영
+ ball(
+  head,
+  0xd99b7d,
+  [side*.735,-.045,.875],
+  [.125,.17,.035]
+ );
+
+ // 귀 안쪽 밝은 부분으로 과한 구멍처럼 보이지 않게 처리
+ ball(
+  head,
+  0xe8b18f,
+  [side*.735,-.045,.895],
+  [.075,.115,.018]
  );
 }
 
-// 앞머리: 이마 위에 겹쳐 붙인 둥근 머리카락
-// 얼굴 앞면에 놓되 안경 영역 위쪽에 배치
-const fringe= new THREE.Group();
+// 앞머리: 넓고 납작한 타원형 두 가닥만 배치
+// 서로 살짝 겹쳐 한 덩어리처럼 보이도록 구성
+const fringe=new THREE.Group();
 head.add(fringe);
 
-// 중앙 앞머리
-ball(fringe,0x211b1b,[-.12,.69,.91],[.34,.28,.17]);
-ball(fringe,0x211b1b,[.18,.70,.91],[.34,.27,.17]);
+const fringeLeft=ball(
+ fringe,0x211b1b,
+ [-.205,.665,.925],
+ [.39,.19,.14]
+);
+fringeLeft.rotation.z=-.10;
 
-// 좌우로 자연스럽게 내려오는 앞머리 끝
-ball(fringe,0x211b1b,[-.39,.57,.85],[.24,.25,.16]);
-ball(fringe,0x211b1b,[.42,.58,.85],[.23,.24,.16]);
+const fringeRight=ball(
+ fringe,0x211b1b,
+ [.205,.665,.925],
+ [.39,.19,.14]
+);
+fringeRight.rotation.z=.10;
 
 // 안경
 const glasses=new THREE.Group();
@@ -588,13 +611,13 @@ renderer.domElement.addEventListener('pointermove',e=>{
 
  dragY=e.clientY-startY;
 
- // 팔의 움직임을 크게 확대
- const v=THREE.MathUtils.clamp(dragY/150,-1,1);
+ // 작은 드래그에도 팔이 크게 반응하도록 감도 상향
+ const v=THREE.MathUtils.clamp(dragY/55,-1,1);
 
  rightTarget.set(
   rightBase.x,
-  rightBase.y-v*1.25,
-  rightBase.z+Math.abs(v)*.65
+  rightBase.y-v*1.55,
+  rightBase.z+Math.abs(v)*.85
  );
 });
 
@@ -603,11 +626,11 @@ window.addEventListener('pointerup',()=>{
 
  dragging=false;
 
- if(Math.abs(dragY)>18){
+ // 손가락을 조금만 움직여도 방향 입력으로 인식
+ if(Math.abs(dragY)>7){
   judge(dragY>0?'down':'up');
  }
 
- // 팔은 애니메이션에서 천천히 원위치로 복귀
  rightTarget.copy(rightBase);
 });
 
@@ -667,7 +690,7 @@ function animate(now){
    itemTimer+=dt;
    item.rotation.y=Math.sin(now*.002)*.04;
 
-   // 아이템 제한시간 2초에서 1.6초로 단축
+   // 아이템 제한시간 1.6초
    if(itemTimer>=1.6)finish();
   }
  }
@@ -686,9 +709,8 @@ function animate(now){
   if(leftProgress>=1)leftMoving=false;
  }
 
- // 한길의 팔은 입력 방향으로 빠르게 움직이고
- // 손을 놓으면 부드럽게 원위치로 돌아온다.
- const armEase=1-Math.exp(-dt*13);
+ // 한길의 팔은 입력 방향으로 빠르게 움직이고 손을 놓으면 복귀
+ const armEase=1-Math.exp(-dt*18);
  rightWrist.lerp(rightTarget,armEase);
 
  aimArm(leftArm,leftShoulder,leftWrist);
