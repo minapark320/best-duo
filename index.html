@@ -19,6 +19,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 .stat strong{font-size:23px}
 #speech{position:fixed;z-index:3;top:19%;left:50%;transform:translateX(-50%);padding:8px 16px;background:#fff9eadd;color:#40554c;border:1px solid white;border-radius:18px;font-size:15px;font-weight:600;white-space:nowrap;box-shadow:0 4px 12px #344d3530;pointer-events:none}
 #speech:before{content:"";position:absolute;top:-10px;left:50%;transform:translateX(-50%);border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:11px solid #fff9eadd}
+#speech.tail-down:before{top:auto;bottom:-10px;border-bottom:0;border-top:11px solid #fff9eadd}
 .hidden{display:none!important}
 #hint{position:fixed;bottom:23px;left:0;right:0;text-align:center;z-index:3;color:white;font-size:14px;font-weight:900;text-shadow:0 2px 5px #4b493c;pointer-events:none}
 .overlay{position:fixed;inset:0;display:grid;place-items:center;padding:20px;z-index:5;background:#1e302b70}
@@ -27,7 +28,6 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 .panel p{line-height:1.7}
 .intro{font-size:34px;line-height:1.28;font-weight:1000;color:#b65e3e;margin:16px 0}
 .intro-sub{font-size:15px;line-height:1.8;font-weight:800}
-.intro-small{font-size:13px;color:#827665;margin:15px 0 18px}
 .speech-preview{background:#fff0ce;padding:11px;border-radius:16px;font-size:14px;font-weight:800;margin:12px 0}
 .item-preview{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:16px 0 18px}
 .preview-card{background:#f2e9d8;border-radius:13px;padding:9px 3px 8px;min-width:0}
@@ -54,10 +54,10 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #bd7e36}
 
 <div class="overlay" id="start">
  <div class="panel">
-  <h1>환상의 짝꿍</h1>
   <div class="speech-preview">덕형과 한길의 완벽한 팀워크!</div>
   <div class="intro">나는 최고의<br>소매치기!</div>
   <div class="intro-sub">쥐도 새도 모르게 지갑만 쏙!<br>여유로운 행인의 주머니를 털어라!</div>
+
   <div class="item-preview">
    <div class="preview-card">
     <svg viewBox="0 0 60 48">
@@ -100,7 +100,7 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #bd7e36}
     <span>라이터</span>
    </div>
   </div>
-  <p class="intro-small">받을 물건은 아래로,<br>위험한 물건은 위로 쳐내!</p>
+
   <button id="startBtn">작전 시작</button>
  </div>
 </div>
@@ -220,7 +220,7 @@ for(let i=0;i<7;i++){
  scene.add(cloud);
 }
 
-// 자경이
+// 자경이 몸
 const victim=new THREE.Group();
 scene.add(victim);
 victim.position.set(0,-.35,-.3);
@@ -233,7 +233,6 @@ victim.add(body);
 box(body,0xf0eee5,[0,0,0],[1.25,1.55,.65],.16);
 capsule(body,0xe8b18f,[0,.88,0],.18,.2);
 
-// 자경이 팔
 for(const side of [-1,1]){
  box(body,0xf0eee5,[side*.65,.13,0],[.38,1.05,.58],.18);
  ball(body,0xe8b18f,[side*.65,-.42,.02],[.22,.22,.22]);
@@ -247,35 +246,35 @@ for(const side of [-1,1]){
 
 // ------------------------------------------------
 // 자경이 머리
-// 검은 머리 안쪽에 얼굴을 겹쳐 붙이는 구조
+// 얼굴과 귀를 머리 앞면에 붙여 하나의 머리로 구성
 // ------------------------------------------------
 const head=new THREE.Group();
 head.position.set(0,2.0,0);
 victim.add(head);
 
-// 검은색 둥근 머리
+// 검은 머리 전체
 ball(head,0x211b1b,[0,0,0],[1.08,1.12,.96]);
 
-// 얼굴: 머리 앞면에 충분히 겹치도록 배치
-// 시작 시 victim이 180도 돌아 있으므로 얼굴은 -Z 방향
-ball(
+// 얼굴은 반드시 머리의 앞면(+Z)에 배치
+// 검은 머리와 깊게 겹치도록 위치를 조정
+const face=ball(
  head,
  0xe8b18f,
- [0,-.015,-.57],
- [.91,.96,.52]
+ [0,-.015,.48],
+ [.88,.94,.62]
 );
 
-// 귀: 얼굴 양옆, 머리와 얼굴 사이에 겹쳐 배치
+// 귀도 얼굴 양옆에 깊게 겹쳐 붙임
 for(const side of [-1,1]){
  ball(
   head,
   0xe8b18f,
-  [side*.88,-.035,-.43],
-  [.24,.30,.20]
+  [side*.79,-.025,.43],
+  [.27,.31,.27]
  );
 }
 
-// 안경
+// 안경은 얼굴 앞쪽 표면에 배치
 const glasses=new THREE.Group();
 head.add(glasses);
 
@@ -284,19 +283,19 @@ for(const side of [-1,1]){
   new THREE.TorusGeometry(.19,.027,8,28),
   mat(0x242424)
  );
- ring.position.set(side*.22,.015,-1.015);
+ ring.position.set(side*.22,.015,1.035);
  glasses.add(ring);
 }
 
-// 안경 가운데 연결부
-box(glasses,0x242424,[0,.015,-1.035],[.12,.035,.035],.01);
+// 안경 코 연결부
+box(glasses,0x242424,[0,.015,1.05],[.12,.035,.035],.01);
 
 // 안경 다리
 for(const side of [-1,1]){
  const arm=box(
   glasses,
   0x242424,
-  [side*.43,.015,-.88],
+  [side*.43,.015,.91],
   [.28,.035,.035],
   .015
  );
@@ -311,7 +310,7 @@ for(const side of [-1,1]){
  const b=box(
   brows,
   0x241d19,
-  [side*.22,.29,-1.005],
+  [side*.22,.29,1.025],
   [.23,.05,.035],
   .015
  );
@@ -510,6 +509,7 @@ function showPhrase(){
  phraseIndex++;
  $('speech').textContent=phraseIndex%2===1?'척하면 척!':'딱하면 딱!';
  $('speech').classList.remove('hidden');
+ $('speech').classList.remove('tail-down');
 }
 
 function spawn(){
@@ -609,7 +609,7 @@ function startGame(){
  leftProgress=0;
  leftMoving=false;
 
- // 자경이의 뒤통수가 먼저 보이도록 설정
+ // 시작할 때 뒤통수가 보이도록 회전
  victim.rotation.y=Math.PI;
  brows.visible=false;
 
@@ -623,6 +623,7 @@ function startGame(){
  $('end').classList.add('hidden');
  $('hint').classList.remove('hidden');
  $('speech').classList.add('hidden');
+ $('speech').classList.remove('tail-down');
 }
 
 $('startBtn').onclick=startGame;
@@ -683,6 +684,7 @@ function animate(now){
    $('hint').classList.add('hidden');
    $('speech').textContent='지금 뭐 하시는 거예요?';
    $('speech').classList.remove('hidden');
+   $('speech').classList.add('tail-down');
   }
  }
 
