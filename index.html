@@ -290,7 +290,9 @@ for(const side of [-1,1]){
  box(body,0x684b36,[side*.31,-.48,.455],[.18,.12,.06],.025);
 }
 
-// 머리 그룹
+// =====================================================
+// 머리: 얼굴 타원과 동일한 곡률을 따르는 헤어 구조
+// =====================================================
 const head=new THREE.Group();
 head.position.set(0,1.78,0);
 victim.add(head);
@@ -298,59 +300,70 @@ victim.add(head);
 const hairColor=0x35251f;
 const skinColor=0xe8b99b;
 
-// 목
+// 얼굴은 반지름이 실제로 x=.46, y=.49, z=.38인 타원
+const faceCenter=new THREE.Vector3(0,.02,.08);
+const faceRadius=new THREE.Vector3(.46,.49,.38);
+
 ball(head,skinColor,[0,-.40,-.02],[.34,.48,.38]);
+ball(head,skinColor,faceCenter.toArray(),[.92,.98,.76]);
 
-// 얼굴 타원형 두상
-const face=ball(head,skinColor,[0,.02,.08],[.92,.98,.76]);
+// 뒤통수 전체를 감싸는 하나의 둥근 헤어 덩어리.
+// 얼굴 뒤쪽으로 충분히 겹쳐서 옆머리가 따로 튀어나오지 않게 함.
+ball(head,hairColor,[0,.025,-.075],[.99,1.04,.86]);
 
-// 뒤통수 헤어
-ball(head,hairColor,[0,.015,-.36],[.91,.96,.49]);
-
-// 정수리 헤어 캡
-const capGeo=new THREE.SphereGeometry(.5,48,32,0,Math.PI*2,0,Math.PI*.48);
-const capMesh=new THREE.Mesh(capGeo,mat(hairColor));
-capMesh.position.set(0,.025,.04);
-capMesh.scale.set(.925,.99,.78);
+// 정수리부터 이마 위쪽까지 얼굴 곡면에 밀착하는 헤어캡.
+// SphereGeometry의 실제 반지름 .5를 고려한 크기.
+const capGeo=new THREE.SphereGeometry(
+ .5,64,40,0,Math.PI*2,0,Math.PI*.43
+);
+const capMat=mat(hairColor,.96);
+const capMesh=new THREE.Mesh(capGeo,capMat);
+capMesh.position.set(0,.02,.08);
+capMesh.scale.set(.97,1.04,.84);
 capMesh.castShadow=true;
 capMesh.receiveShadow=true;
 head.add(capMesh);
 
-// 앞머리: 얼굴 타원 표면을 따라 휘어지는 단일 메시
-// x와 y 위치에 따라 타원형 얼굴의 z 표면을 계산해 밀착시킴
+// 얼굴 타원 표면의 z값을 계산하는 함수
+function faceSurfaceZ(x,y,offset=.012){
+ const nx=(x-faceCenter.x)/faceRadius.x;
+ const ny=(y-faceCenter.y)/faceRadius.y;
+ const inside=1-nx*nx-ny*ny;
+ if(inside<=0)return null;
+ return faceCenter.z+faceRadius.z*Math.sqrt(inside)+offset;
+}
+
+// 앞머리: 얼굴의 실제 타원 표면을 따라 휘어지는 하나의 메시
 function createFringe(){
- const width=1.42;
- const columns=48;
- const rows=12;
+ const columns=64;
+ const rows=16;
  const vertices=[];
  const indices=[];
  const uvs=[];
+ const width=.78;
 
  for(let j=0;j<=rows;j++){
   const v=j/rows;
+
   for(let i=0;i<=columns;i++){
    const u=i/columns;
    const x=(u-.5)*width;
 
-   // 윗부분은 정수리 헤어와 이어지고,
-   // 아래쪽은 가운데가 살짝 내려오는 둥근 앞머리 라인
-   const edgeY=.43
-    +.075*Math.pow(Math.abs(x)/(.5*width),1.7)
-    -.025*Math.cos(x/width*Math.PI*2);
+   // 타원 두상의 위쪽 경계를 기준으로 앞머리 시작점을 정함
+   const nx=x/faceRadius.x;
+   const topY=faceCenter.y+
+    faceRadius.y*Math.sqrt(Math.max(.01,1-nx*nx))-.012;
 
-   const topY=.67-.035*Math.pow(Math.abs(x)/(.5*width),2);
+   // 가운데가 살짝 내려오고 양쪽은 자연스럽게 올라가는 앞머리
+   const edgeY=.205+.075*Math.pow(Math.abs(x)/(.5*width),1.7);
    const y=THREE.MathUtils.lerp(topY,edgeY,v);
 
-   // 얼굴 타원체 표면을 기준으로 앞머리 깊이를 계산
-   const nx=x/.92;
-   const ny=(y-.02)/.98;
-   const inside=Math.max(.025,1-nx*nx-ny*ny);
-   const surfaceZ=.08+.76*Math.sqrt(inside);
-
-   // 얼굴 표면에서 아주 조금만 앞으로 이동
-   const z=surfaceZ+.018;
-
-   vertices.push(x,y,z);
+   const z=faceSurfaceZ(x,y,.022);
+   if(z===null){
+    vertices.push(x,y,faceCenter.z);
+   }else{
+    vertices.push(x,y,z);
+   }
    uvs.push(u,1-v);
   }
  }
@@ -371,77 +384,86 @@ function createFringe(){
  geometry.setIndex(indices);
  geometry.computeVertexNormals();
 
- const material=new THREE.MeshStandardMaterial({
-  color:hairColor,
-  roughness:.94,
-  side:THREE.DoubleSide
- });
-
- const mesh=new THREE.Mesh(geometry,material);
+ const mesh=new THREE.Mesh(
+  geometry,
+  new THREE.MeshStandardMaterial({
+   color:hairColor,
+   roughness:.96,
+   side:THREE.DoubleSide
+  })
+ );
  mesh.castShadow=true;
  mesh.receiveShadow=true;
  return mesh;
 }
 head.add(createFringe());
 
-// 관자놀이 옆머리: 얼굴 양옆에 밀착
-for(const side of [-1,1]){
- const sideHair=ball(
-  head,
-  hairColor,
-  [side*.77,-.04,.18],
-  [.15,.49,.34]
- );
- sideHair.rotation.z=side*.08;
-}
+// 옆머리는 별도의 타원 덩어리로 만들지 않음.
+// 뒤통수 헤어가 얼굴의 좌우 가장자리까지 감싸도록 구성.
 
-// 안경
+// 안경: 얼굴 타원 표면에 맞춰 각 부품의 깊이를 개별 계산
 const glasses=new THREE.Group();
 head.add(glasses);
 const glassesMaterial=mat(0x302d2a);
 
 for(const side of [-1,1]){
+ const x=side*.155;
+ const y=-.045;
+ const z=faceSurfaceZ(x,y,.025);
+
  const ring=new THREE.Mesh(
-  new THREE.TorusGeometry(.145,.018,8,40),
+  new THREE.TorusGeometry(.125,.016,8,48),
   glassesMaterial
  );
- ring.position.set(side*.175,-.045,.795);
+ ring.position.set(x,y,z);
  glasses.add(ring);
+
+ // 안경 다리
+ const temple=new THREE.Mesh(
+  new THREE.BoxGeometry(.13,.018,.018),
+  glassesMaterial
+ );
+ temple.position.set(side*.285,y,z-.045);
+ temple.rotation.y=side*.25;
+ glasses.add(temple);
 }
+
+const bridgeZ=faceSurfaceZ(0,-.045,.03);
 const bridge=new THREE.Mesh(
- new THREE.BoxGeometry(.065,.018,.018),
+ new THREE.BoxGeometry(.055,.018,.018),
  glassesMaterial
 );
-bridge.position.set(0,-.045,.80);
+bridge.position.set(0,-.045,bridgeZ);
 glasses.add(bridge);
 
-for(const side of [-1,1]){
- const arm=new THREE.Mesh(
-  new THREE.BoxGeometry(.12,.018,.018),
-  glassesMaterial
- );
- arm.position.set(side*.31,-.045,.72);
- arm.rotation.y=side*.25;
- glasses.add(arm);
-}
-
-// 화난 눈썹
+// 화난 눈썹은 게임오버 때만 표시
 const brows=new THREE.Group();
 head.add(brows);
+
 for(const side of [-1,1]){
- const b=box(brows,0x35251f,[side*.18,.17,.79],[.17,.035,.018],.012);
- b.rotation.z=side<0?-.28:.28;
+ const x=side*.155;
+ const y=.115;
+ const z=faceSurfaceZ(x,y,.035);
+ const b=box(
+  brows,
+  0x35251f,
+  [x,y,z],
+  [.16,.028,.018],
+  .012
+ );
+ b.rotation.z=side<0?-.24:.24;
 }
 brows.visible=false;
 
+// =====================================================
 // 플레이어 양팔
-// 원통형 천 소매 + 별도 접힌 커프 + 손 구조
+// =====================================================
 function makeSleeveMesh(color){
  const geometry=new THREE.CylinderGeometry(
-  .43,  // 손목 쪽 반지름
-  .59,  // 어깨 쪽 반지름
-  1,    // 기본 길이
-  32,
+  .43,
+  .59,
+  1,
+  40,
   1,
   false
  );
@@ -455,52 +477,27 @@ function createArm(color,cuffColor,foldColor){
  const group=new THREE.Group();
  scene.add(group);
 
- // 소매 천
  const sleeve=makeSleeveMesh(color);
  group.add(sleeve);
 
- // 손목 끝단의 접힌 소매
  const cuff=new THREE.Mesh(
-  new THREE.CylinderGeometry(.46,.46,.22,32,1,false),
+  new THREE.CylinderGeometry(.46,.46,.22,40,1,false),
   mat(cuffColor)
  );
  cuff.castShadow=true;
  cuff.receiveShadow=true;
  group.add(cuff);
 
- // 접힌 끝단의 얇은 가장자리
  const cuffFold=new THREE.Mesh(
-  new THREE.CylinderGeometry(.465,.465,.075,32,1,false),
+  new THREE.CylinderGeometry(.465,.465,.075,40,1,false),
   mat(foldColor)
  );
  cuffFold.castShadow=true;
  cuffFold.receiveShadow=true;
  group.add(cuffFold);
 
- // 손바닥과 손가락
- const hand=new THREE.Group();
- group.add(hand);
-
- // 손바닥
- ball(hand,0xf0c6a5,[0,.035,.035],[.39,.34,.24]);
-
- // 엄지
- const thumb=ball(hand,0xf0c6a5,[-.20,.02,.12],[.16,.23,.16]);
- thumb.rotation.z=-.55;
-
- // 네 손가락
- for(let i=0;i<4;i++){
-  const x=-.135+i*.09;
-  const length=i===1||i===2?.22:.19;
-  const finger=capsule(
-   hand,
-   0xf0c6a5,
-   [x,-.19,.075],
-   .055,
-   length
-  );
-  finger.rotation.z=(i-1.5)*-.035;
- }
+ // 손은 손가락 없이 둥근 한 덩이
+ const hand=ball(group,0xf0c6a5,[0,0,0],[.23,.22,.23]);
 
  return {group,sleeve,cuff,cuffFold,hand};
 }
@@ -525,19 +522,10 @@ function aimArm(arm,shoulder,wrist){
  arm.group.position.copy(shoulder).add(wrist).multiplyScalar(.5);
  arm.group.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction);
 
- // 소매 길이는 팔 길이에 맞춰 늘리고,
- // 손목 쪽은 좁아지는 형태 유지
  arm.sleeve.scale.set(1,length,1);
-
- // 팔의 +Y 방향 끝부분에 커프와 손 배치
  arm.cuff.position.set(0,length*.5-.16,0);
- arm.cuff.scale.set(1,1,1);
-
  arm.cuffFold.position.set(0,length*.5-.055,.008);
- arm.cuffFold.scale.set(1,1,1);
-
  arm.hand.position.set(0,length*.5+.12,.045);
- arm.hand.scale.set(1,1,1);
 }
 
 // 아이템
