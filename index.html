@@ -294,36 +294,50 @@ victim.add(head);
 const hairColor=0x35251f;
 const skinColor=0xe8b99b;
 
-// 머리통
-ball(head,hairColor,[0,.015,0],[.92,.98,.76]);
+// 뒤통수: 얼굴 뒤에 밀착
+ball(head,hairColor,[0,.015,-.045],[.92,.98,.76]);
 
 // 얼굴
 ball(head,skinColor,[0,-.015,.40],[.88,.94,.67]);
 
-// 앞머리
+// 윗머리: 머리 표면을 따라 덮는 반구형 헤어캡
+const hairCapGeometry=new THREE.SphereGeometry(
+ .5,40,24,0,Math.PI*2,0,Math.PI*.56
+);
+const hairCap=new THREE.Mesh(hairCapGeometry,mat(hairColor));
+hairCap.position.set(0,.015,0);
+hairCap.scale.set(.925,.985,.77);
+hairCap.castShadow=true;
+hairCap.receiveShadow=true;
+head.add(hairCap);
+
+// 앞머리: 얼굴 위쪽에 붙는 하나의 자연스러운 앞머리
 const fringe=new THREE.Group();
 head.add(fringe);
 
-ball(fringe,hairColor,[0,.54,.79],[.72,.25,.20]);
-ball(fringe,hairColor,[-.34,.46,.88],[.28,.17,.12]);
-ball(fringe,hairColor,[0,.43,.91],[.31,.16,.12]);
-ball(fringe,hairColor,[.34,.46,.88],[.28,.17,.12]);
+// 앞머리 베이스를 머리 표면에 밀착
+ball(fringe,hairColor,[0,.49,.755],[.69,.20,.13]);
 
-// 안경: 기존 크기의 절반
+// 둥글게 이어지는 앞머리 아랫선
+ball(fringe,hairColor,[-.29,.405,.835],[.29,.135,.095]);
+ball(fringe,hairColor,[0,.385,.865],[.32,.145,.095]);
+ball(fringe,hairColor,[.29,.405,.835],[.29,.135,.095]);
+
+// 안경: 기존 축소 크기에서 약 2배 확대
 const glasses=new THREE.Group();
 head.add(glasses);
 const glassesMaterial=mat(0x302d2a);
 
 for(const side of [-1,1]){
  const ring=new THREE.Mesh(
-  new THREE.TorusGeometry(.0725,.009,8,32),
+  new THREE.TorusGeometry(.145,.018,8,40),
   glassesMaterial
  );
- ring.position.set(side*.0875,-.005,1.075);
+ ring.position.set(side*.175,-.005,1.075);
  glasses.add(ring);
 }
 const bridge=new THREE.Mesh(
- new THREE.BoxGeometry(.0325,.009,.009),
+ new THREE.BoxGeometry(.065,.018,.018),
  glassesMaterial
 );
 bridge.position.set(0,-.005,1.075);
@@ -331,10 +345,10 @@ glasses.add(bridge);
 
 for(const side of [-1,1]){
  const arm=new THREE.Mesh(
-  new THREE.BoxGeometry(.06,.009,.009),
+  new THREE.BoxGeometry(.12,.018,.018),
   glassesMaterial
  );
- arm.position.set(side*.155,-.005,1.055);
+ arm.position.set(side*.31,-.005,1.045);
  arm.rotation.y=side*.25;
  glasses.add(arm);
 }
@@ -344,7 +358,7 @@ const brows=new THREE.Group();
 head.add(brows);
 
 for(const side of [-1,1]){
- const b=box(brows,0x35251f,[side*.09,.10,1.075],[.085,.018,.012],.006);
+ const b=box(brows,0x35251f,[side*.18,.17,1.075],[.17,.035,.018],.012);
  b.rotation.z=side<0?-.28:.28;
 }
 brows.visible=false;
@@ -381,10 +395,17 @@ function aimArm(arm,shoulder,wrist){
 
  arm.group.position.copy(shoulder).add(wrist).multiplyScalar(.5);
  arm.group.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction);
- arm.sleeve.scale.set(1,length,1);
- arm.cuff.position.set(0,length*.5-.23,0);
- arm.cuffFold.position.set(0,length*.5-.12,0);
- arm.hand.position.set(0,length*.5-.04,0);
+
+ // 소매가 팔 앞쪽을 넓게 덮도록 조정
+ arm.sleeve.scale.set(1.13,length,1.18);
+
+ // 소매 끝단을 앞으로 강조
+ arm.cuff.position.set(0,length*.5-.25,.025);
+ arm.cuffFold.position.set(0,length*.5-.14,.035);
+
+ // 손은 소매 안쪽으로 넣어 겉으로 거의 보이지 않게
+ arm.hand.position.set(0,length*.5-.34,-.015);
+ arm.hand.scale.setScalar(.72);
 }
 
 // 아이템
