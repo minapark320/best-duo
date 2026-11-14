@@ -57,50 +57,28 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #bd7e36}
   <div class="speech-preview">덕형과 한길의 완벽한 팀워크!</div>
   <div class="intro">나는 최고의<br>소매치기!</div>
   <div class="intro-sub">쥐도 새도 모르게 지갑만 쏙!<br>여유로운 행인의 주머니를 털어라!</div>
-
   <div class="item-preview">
    <div class="preview-card">
-    <svg viewBox="0 0 60 48">
-     <rect x="7" y="10" width="46" height="29" rx="6" fill="#80513b"/>
-     <rect x="10" y="13" width="40" height="22" rx="4" fill="#a77955"/>
-     <circle cx="44" cy="24" r="3" fill="#e6c47b"/>
-    </svg>
+    <svg viewBox="0 0 60 48"><rect x="7" y="10" width="46" height="29" rx="6" fill="#80513b"/><rect x="10" y="13" width="40" height="22" rx="4" fill="#a77955"/><circle cx="44" cy="24" r="3" fill="#e6c47b"/></svg>
     <span>지갑</span>
    </div>
    <div class="preview-card">
-    <svg viewBox="0 0 60 48">
-     <rect x="6" y="9" width="48" height="30" rx="2" fill="#f7f0dc" stroke="#a99c7c"/>
-     <rect x="10" y="13" width="40" height="22" fill="#e5e7d1"/>
-     <circle cx="30" cy="24" r="8" fill="none" stroke="#385b70" stroke-width="2"/>
-     <path d="M13 18h8M39 30h8" stroke="#385b70" stroke-width="2"/>
-    </svg>
+    <svg viewBox="0 0 60 48"><rect x="6" y="9" width="48" height="30" rx="2" fill="#f7f0dc" stroke="#a99c7c"/><rect x="10" y="13" width="40" height="22" fill="#e5e7d1"/><circle cx="30" cy="24" r="8" fill="none" stroke="#385b70" stroke-width="2"/><path d="M13 18h8M39 30h8" stroke="#385b70" stroke-width="2"/></svg>
     <span>돈</span>
    </div>
    <div class="preview-card">
-    <svg viewBox="0 0 60 48">
-     <rect x="17" y="5" width="26" height="39" rx="4" fill="#eee8d8" stroke="#c9bda6"/>
-     <rect x="17" y="5" width="26" height="12" rx="3" fill="#b9473c"/>
-     <rect x="17" y="31" width="26" height="13" fill="#e8e5dd"/>
-    </svg>
+    <svg viewBox="0 0 60 48"><rect x="17" y="5" width="26" height="39" rx="4" fill="#eee8d8" stroke="#c9bda6"/><rect x="17" y="5" width="26" height="12" rx="3" fill="#b9473c"/><rect x="17" y="31" width="26" height="13" fill="#e8e5dd"/></svg>
     <span>담뱃갑</span>
    </div>
    <div class="preview-card">
-    <svg viewBox="0 0 60 48">
-     <path d="M11 27 Q14 8 31 8 Q47 8 49 27 Z" fill="#3475ae"/>
-     <path d="M8 27 Q30 23 53 29 Q47 37 25 35 Q12 34 8 27" fill="#245b8c"/>
-    </svg>
+    <svg viewBox="0 0 60 48"><path d="M11 27 Q14 8 31 8 Q47 8 49 27 Z" fill="#3475ae"/><path d="M8 27 Q30 23 53 29 Q47 37 25 35 Q12 34 8 27" fill="#245b8c"/></svg>
     <span>모자</span>
    </div>
    <div class="preview-card">
-    <svg viewBox="0 0 60 48">
-     <rect x="19" y="5" width="22" height="38" rx="7" fill="#b9c1c5"/>
-     <rect x="19" y="5" width="22" height="19" rx="7" fill="#dce0e1"/>
-     <rect x="19" y="24" width="22" height="19" fill="#b9c1c5"/>
-    </svg>
+    <svg viewBox="0 0 60 48"><rect x="19" y="5" width="22" height="38" rx="7" fill="#b9c1c5"/><rect x="19" y="5" width="22" height="19" rx="7" fill="#dce0e1"/><rect x="19" y="24" width="22" height="19" fill="#b9c1c5"/></svg>
     <span>라이터</span>
    </div>
   </div>
-
   <button id="startBtn">작전 시작</button>
  </div>
 </div>
@@ -129,8 +107,6 @@ scene.background=new THREE.Color(0x9bd6f4);
 scene.fog=new THREE.Fog(0x9bd6f4,30,70);
 
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,150);
-
-// 자경이를 기존보다 약 1.5배 가까이 보이도록 카메라 이동
 camera.position.set(0,5.23,9.2);
 camera.lookAt(0,4.7,0);
 
@@ -235,15 +211,24 @@ victim.add(body);
 box(body,0xf0eee5,[0,0,0],[1.25,1.55,.65],.16);
 capsule(body,0xe8b18f,[0,.88,0],.18,.2);
 
+// 자경이 팔
 for(const side of [-1,1]){
  box(body,0xf0eee5,[side*.65,.13,0],[.38,1.05,.58],.18);
  ball(body,0xe8b18f,[side*.65,-.42,.02],[.22,.22,.22]);
 }
 
-// 멜빵
+// 멜빵 앞면과 뒷면
 for(const side of [-1,1]){
- box(body,0x795338,[side*.31,.04,.34],[.13,1.24,.055],.025);
- box(body,0x98704b,[side*.31,.58,.37],[.17,.12,.025],.02);
+ // 앞쪽 멜빵
+ box(body,0x795338,[side*.31,.04,.345],[.13,1.24,.07],.025);
+ box(body,0x98704b,[side*.31,.58,.39],[.17,.12,.035],.02);
+
+ // 어깨를 넘어가는 연결 부분
+ box(body,0x795338,[side*.31,.66,0],[.14,.22,.72],.045);
+
+ // 등 뒤 멜빵
+ box(body,0x795338,[side*.31,.04,-.345],[.13,1.24,.07],.025);
+ box(body,0x98704b,[side*.31,.58,-.39],[.17,.12,.035],.02);
 }
 
 // 머리 그룹
@@ -251,46 +236,45 @@ const head=new THREE.Group();
 head.position.set(0,2.0,0);
 victim.add(head);
 
-// 검은 머리 전체
-ball(head,0x211b1b,[0,0,0],[1.08,1.12,.96]);
+const hairColor=0x211b1b;
+const skinColor=0xe8b18f;
 
-// 얼굴
-ball(head,0xe8b18f,[0,-.015,.49],[.88,.94,.64]);
+// 뒤통수와 정수리를 감싸는 검은 머리
+ball(head,hairColor,[0,0,0],[1.08,1.12,.96]);
 
-// 귀: 얼굴 양옆과 머리에 깊게 겹쳐 붙임
+// 얼굴을 머리 앞쪽에 깊숙이 겹쳐 붙임
+ball(head,skinColor,[0,-.015,.49],[.88,.94,.64]);
+
+// 귀: 머리와 얼굴 양쪽에 절반 이상 묻히도록 배치
 for(const side of [-1,1]){
- ball(
-  head,
-  0xe8b18f,
-  [side*.735,-.045,.66],
-  [.285,.30,.245]
- );
+ // 바깥 귀
+ ball(head,skinColor,[side*.79,-.055,.40],[.285,.31,.29]);
 
- ball(
-  head,
-  0xd99b7d,
-  [side*.735,-.045,.875],
-  [.125,.17,.035]
- );
+ // 귀 안쪽 음영
+ ball(head,0xd69b7f,[side*.79,-.055,.635],[.155,.19,.075]);
 
- ball(
-  head,
-  0xe8b18f,
-  [side*.735,-.045,.895],
-  [.075,.115,.018]
- );
+ // 귀 안쪽 밝은 부분
+ ball(head,0xe8b18f,[side*.79,-.055,.682],[.09,.125,.035]);
 }
 
-// 앞머리: 여러 조각 대신 가로로 긴 한 덩어리
-// 머리카락과 이마에 깊숙이 겹쳐 떠 보이지 않도록 배치
-const fringe=box(
+// 앞머리: 하나의 넓고 둥근 덩어리
+// 머리와 이마에 깊게 겹쳐 떠 보이지 않도록 얼굴 앞면에 밀착
+const fringe=ball(
  head,
- 0x211b1b,
- [0,.665,.88],
- [.96,.19,.22],
- .085
+ hairColor,
+ [-.015,.695,.91],
+ [1.02,.235,.245]
 );
-fringe.rotation.z=0;
+fringe.rotation.z=-.055;
+
+// 앞머리 끝선을 살짝 볼록하게 만드는 얇은 아래쪽 볼륨
+const fringeEdge=ball(
+ head,
+ hairColor,
+ [-.015,.615,.925],
+ [.94,.105,.205]
+);
+fringeEdge.rotation.z=-.055;
 
 // 안경
 const glasses=new THREE.Group();
@@ -356,7 +340,7 @@ const leftShoulder=new THREE.Vector3(-2.55,4.0,2.8);
 const rightShoulder=new THREE.Vector3(2.55,4.0,2.8);
 
 const leftBase=new THREE.Vector3(-.65,1.65,2.55);
-const rightBase=new THREE.Vector3(.65,1.65,2.55);
+const rightBase=new THREE.Vector3(.65,2.05,2.55);
 
 let leftWrist=leftBase.clone();
 let rightWrist=rightBase.clone();
@@ -601,13 +585,13 @@ renderer.domElement.addEventListener('pointermove',e=>{
 
  dragY=e.clientY-startY;
 
- // 이전 55px에서 27.5px로 변경해 감도를 2배 높임
- const v=THREE.MathUtils.clamp(dragY/27.5,-1,1);
+ // 작은 드래그에도 팔이 크게 반응
+ const v=THREE.MathUtils.clamp(dragY/13.75,-1,1);
 
  rightTarget.set(
   rightBase.x,
-  rightBase.y-v*1.55,
-  rightBase.z+Math.abs(v)*.85
+  rightBase.y-v*1.8,
+  rightBase.z+Math.abs(v)*.9
  );
 });
 
@@ -616,7 +600,6 @@ window.addEventListener('pointerup',()=>{
 
  dragging=false;
 
- // 짧은 움직임도 입력으로 인식
  if(Math.abs(dragY)>4){
   judge(dragY>0?'down':'up');
  }
@@ -679,7 +662,6 @@ function animate(now){
   if(active&&item){
    itemTimer+=dt;
    item.rotation.y=Math.sin(now*.002)*.04;
-
    if(itemTimer>=1.6)finish();
   }
  }
@@ -698,8 +680,8 @@ function animate(now){
   if(leftProgress>=1)leftMoving=false;
  }
 
- // 한길의 팔은 입력 방향으로 빠르게 움직이고 손을 놓으면 복귀
- const armEase=1-Math.exp(-dt*18);
+ // 한길의 팔은 입력 방향으로 빠르게 움직이고 놓으면 복귀
+ const armEase=1-Math.exp(-dt*22);
  rightWrist.lerp(rightTarget,armEase);
 
  aimArm(leftArm,leftShoulder,leftWrist);
