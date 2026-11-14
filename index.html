@@ -232,62 +232,152 @@ for(const side of [-1,1]){
  box(body,0xb08b65,[side*.31,.58,.39],[.17,.12,.035],.02);
 }
 
-// 머리 새로 제작
+// --------------------------------------------------
+// 자경이 머리 새 제작
+// 기존 카메라, 캐릭터 위치, 크기, 구도는 변경하지 않음
+// --------------------------------------------------
 const head=new THREE.Group();
-head.position.set(0,2.0,0);victim.add(head);
-const hairColor=0x40332e,skinColor=0xe8b99b;
+head.position.set(0,2.0,0);
+victim.add(head);
 
-// 얼굴을 먼저 배치
-ball(head,skinColor,[0,-.015,.48],[.88,.94,.67]);
+const hairColor=0x40332e;
+const skinColor=0xe8b99b;
 
-// 둥근 뒤통수와 윗머리
-// 구형 머리카락을 얼굴 뒤쪽에 배치해 얼굴을 덮지 않도록 함
-ball(head,hairColor,[0,.24,-.12],[.94,.98,.70]);
+// 얼굴
+const face=ball(head,skinColor,[0,-.015,.48],[.88,.94,.67]);
 
-// 윗머리의 앞쪽 경계선을 둥글게 정리하는 얇은 헤어라인
-// 돌출된 Extrude 도형 대신 납작한 타원형을 사용
-ball(head,hairColor,[0,.57,.77],[.78,.27,.22]);
+// 머리카락을 여러 구체로 붙이지 않고 하나의 연속된 메시로 제작
+// 구형 두상에서 이마와 얼굴 앞쪽 하단만 비워 둔다.
+function createHairShell(){
+ const geometry=new THREE.SphereGeometry(1,64,48);
+ const position=geometry.attributes.position;
+ const index=geometry.index;
+ const kept=[];
 
-// 양옆 머리카락: 얼굴 옆선을 따라 붙는 짧은 둥근 형태
+ for(let i=0;i<index.count;i+=3){
+  const ids=[index.getX(i),index.getX(i+1),index.getX(i+2)];
+  const p=ids.map(id=>new THREE.Vector3().fromBufferAttribute(position,id));
+
+  const center=new THREE.Vector3()
+   .add(p[0]).add(p[1]).add(p[2])
+   .multiplyScalar(1/3);
+
+  // 얼굴 정면의 아래쪽 영역만 비우고
+  // 정수리와 옆머리, 뒤통수는 하나로 이어지게 유지
+  const frontLower=center.z>.12 && center.y<.48;
+  if(!frontLower)kept.push(...ids);
+ }
+
+ geometry.setIndex(kept);
+ geometry.computeVertexNormals();
+
+ const hair=new THREE.Mesh(
+  geometry,
+  new THREE.MeshStandardMaterial({
+   color:hairColor,
+   roughness:.95,
+   side:THREE.DoubleSide
+  })
+ );
+
+ hair.position.set(0,.02,-.015);
+ hair.scale.set(.96,1.02,.82);
+ hair.castShadow=true;
+ hair.receiveShadow=true;
+ return hair;
+}
+head.add(createHairShell());
+
+// 귀는 얼굴 안쪽에 절반 이상 겹치게 배치
 for(const side of [-1,1]){
- ball(head,hairColor,[side*.73,.12,.35],[.22,.62,.34]);
+ ball(head,skinColor,[side*.76,-.075,.49],[.17,.21,.15]);
 }
 
-// 귀
+// 눈
 for(const side of [-1,1]){
- ball(head,skinColor,[side*.79,-.07,.46],[.22,.25,.21]);
+ ball(head,0x302b28,[side*.18,-.025,1.135],[.045,.055,.025]);
 }
 
-// 안경
-const glasses=new THREE.Group();head.add(glasses);
+// 코는 작고 둥글게
+ball(head,0xd99f83,[0,-.13,1.145],[.065,.055,.045]);
+
+// 입
+const mouthCurve=new THREE.CatmullRomCurve3([
+ new THREE.Vector3(-.09,-.27,1.13),
+ new THREE.Vector3(-.045,-.29,1.15),
+ new THREE.Vector3(0,-.27,1.155),
+ new THREE.Vector3(.045,-.29,1.15),
+ new THREE.Vector3(.09,-.27,1.13)
+]);
+const mouth=new THREE.Mesh(
+ new THREE.TubeGeometry(mouthCurve,20,.012,6,false),
+ mat(0x895e53)
+);
+head.add(mouth);
+
+// 안경: 기존보다 약 25% 작게, 테도 얇게
+const glasses=new THREE.Group();
+head.add(glasses);
+
+const glassesMaterial=mat(0x393633);
+
 for(const side of [-1,1]){
- const ring=new THREE.Mesh(new THREE.TorusGeometry(.19,.027,8,32),mat(0x393633));
- ring.position.set(side*.22,.015,1.045);glasses.add(ring);
+ const ring=new THREE.Mesh(
+  new THREE.TorusGeometry(.145,.018,8,32),
+  glassesMaterial
+ );
+ ring.position.set(side*.175,-.005,1.155);
+ glasses.add(ring);
 }
-const bridge=new THREE.Mesh(new THREE.BoxGeometry(.12,.035,.035),mat(0x393633));
-bridge.position.set(0,.015,1.045);glasses.add(bridge);
+
+// 가느다란 안경 연결 다리
+const bridge=new THREE.Mesh(
+ new THREE.BoxGeometry(.065,.018,.018),
+ glassesMaterial
+);
+bridge.position.set(0,-.005,1.155);
+glasses.add(bridge);
+
+// 안경 옆 연결부
+for(const side of [-1,1]){
+ const arm=new THREE.Mesh(
+  new THREE.BoxGeometry(.12,.018,.018),
+  glassesMaterial
+ );
+ arm.position.set(side*.31,-.005,1.12);
+ arm.rotation.y=side*.25;
+ glasses.add(arm);
+}
 
 // 화난 눈썹
-const brows=new THREE.Group();head.add(brows);
+const brows=new THREE.Group();
+head.add(brows);
+
 for(const side of [-1,1]){
- const b=box(brows,0x40332e,[side*.22,.205,1.04],[.23,.05,.035],.015);
- b.rotation.z=side<0?-.3:.3;
+ const b=box(
+  brows,
+  0x40332e,
+  [side*.18,.18,1.145],
+  [.17,.035,.025],
+  .012
+ );
+ b.rotation.z=side<0?-.28:.28;
 }
 brows.visible=false;
 
 // 플레이어 양팔과 접힌 소매
 function createArm(color,cuffColor,foldColor){
- const group=new THREE.Group();scene.add(group);
+ const group=new THREE.Group();
+ scene.add(group);
  const sleeve=box(group,color,[0,0,0],[1.25,1,.78],.28);
  const cuff=box(group,cuffColor,[0,0,0],[1.31,.25,.86],.10);
  const cuffFold=box(group,foldColor,[0,0,0],[1.30,.10,.87],.045);
- const hand=new THREE.Group();group.add(hand);
+ const hand=new THREE.Group();
+ group.add(hand);
  ball(hand,0xf0c6a5,[0,0,0],[1.48,1.32,1.25]);
  return {group,sleeve,cuff,cuffFold,hand};
 }
 
-// 덕형 소매는 진한 녹색, 한길 소매는 진한 청록색
-// 접힌 끝단은 본체보다 밝고 다른 색으로 구분
 const leftArm=createArm(0x527746,0x9bb58b,0x6f916c);
 const rightArm=createArm(0x557d72,0xb2c8b8,0x78998c);
 
@@ -309,7 +399,8 @@ function aimArm(arm,shoulder,wrist){
 }
 
 // 물건
-const holder=new THREE.Group();scene.add(holder);
+const holder=new THREE.Group();
+scene.add(holder);
 const names=['지갑','돈','담뱃갑','모자','라이터','돌','벽돌','막대기','수배 전단지','옥수수'];
 const catchSet=new Set(['지갑','돈','담뱃갑','모자','라이터']);
 let item=null,name='',itemTimer=0,spawnTimer=0;
@@ -320,18 +411,28 @@ let turning=false,turnProgress=0,leftProgress=0,leftMoving=false,phraseIndex=0;
 function makeItem(n){
  const g=new THREE.Group();
  if(n==='지갑'){
-  box(g,0x98765d,[0,0,0],[.56,.38,.12],.045);box(g,0xb99a7c,[0,.02,.07],[.48,.06,.02],.015);ball(g,0xe0c58c,[.17,0,.09],[.1,.12,.06]);
+  box(g,0x98765d,[0,0,0],[.56,.38,.12],.045);
+  box(g,0xb99a7c,[0,.02,.07],[.48,.06,.02],.015);
+  ball(g,0xe0c58c,[.17,0,.09],[.1,.12,.06]);
  }else if(n==='돈'){
-  box(g,0xf5f0dc,[0,0,0],[.62,.4,.035],.02);box(g,0x78919a,[0,0,.025],[.54,.32,.012],.015);ball(g,0xf5f0dc,[0,0,.04],[.18,.2,.02]);
+  box(g,0xf5f0dc,[0,0,0],[.62,.4,.035],.02);
+  box(g,0x78919a,[0,0,.025],[.54,.32,.012],.015);
+  ball(g,0xf5f0dc,[0,0,.04],[.18,.2,.02]);
  }else if(n==='담뱃갑'){
-  box(g,0xe7e0cb,[0,0,0],[.37,.54,.18],.03);box(g,0xc77d75,[0,.17,.1],[.37,.17,.02],.01);box(g,0xeeeeea,[0,-.12,.1],[.37,.16,.02],.01);
+  box(g,0xe7e0cb,[0,0,0],[.37,.54,.18],.03);
+  box(g,0xc77d75,[0,.17,.1],[.37,.17,.02],.01);
+  box(g,0xeeeeea,[0,-.12,.1],[.37,.16,.02],.01);
  }else if(n==='모자'){
-  const a=new THREE.Mesh(new THREE.CylinderGeometry(.24,.3,.25,24),mat(0x7892a2));a.position.y=.06;g.add(a);
-  const b=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.06,24),mat(0x7892a2));b.position.y=-.09;g.add(b);
+  const a=new THREE.Mesh(new THREE.CylinderGeometry(.24,.3,.25,24),mat(0x7892a2));
+  a.position.y=.06;g.add(a);
+  const b=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.06,24),mat(0x7892a2));
+  b.position.y=-.09;g.add(b);
  }else if(n==='라이터'){
-  box(g,0xc5cece,[0,0,0],[.27,.42,.17],.035);box(g,0x899394,[.03,.23,0],[.15,.07,.18],.015);
+  box(g,0xc5cece,[0,0,0],[.27,.42,.17],.035);
+  box(g,0x899394,[.03,.23,0],[.15,.07,.18],.015);
  }else if(n==='돌'){
-  const a=new THREE.Mesh(new THREE.DodecahedronGeometry(.3),mat(0x9a9e98));a.scale.set(1.2,.9,1);g.add(a);
+  const a=new THREE.Mesh(new THREE.DodecahedronGeometry(.3),mat(0x9a9e98));
+  a.scale.set(1.2,.9,1);g.add(a);
  }else if(n==='벽돌'){
   box(g,0xc77e70,[0,0,0],[.62,.35,.3],.035);
   for(const x of [-.17,0,.17]){
@@ -339,7 +440,8 @@ function makeItem(n){
    hole.position.set(x,.02,.154);g.add(hole);
   }
  }else if(n==='막대기'){
-  capsule(g,0x947653,[0,0,0],.065,.9,[0,0,Math.PI/2]);capsule(g,0x947653,[.16,.12,0],.045,.35,[0,0,.8]);
+  capsule(g,0x947653,[0,0,0],.065,.9,[0,0,Math.PI/2]);
+  capsule(g,0x947653,[.16,.12,0],.045,.35,[0,0,.8]);
  }else if(n==='옥수수'){
   const corn=new THREE.Mesh(new THREE.CapsuleGeometry(.22,.72,12,32),mat(0xe9cf72));
   corn.rotation.z=Math.PI/2;corn.castShadow=true;corn.receiveShadow=true;g.add(corn);
@@ -348,11 +450,19 @@ function makeItem(n){
  }else if(n==='수배 전단지'){
   box(g,0xf3e8d0,[0,0,0],[.62,.48,.035],.015);
   const ink=new THREE.MeshBasicMaterial({color:0x514a43});
-  const outline=new THREE.Mesh(new THREE.TorusGeometry(.13,.012,6,24),ink);outline.position.set(0,-.015,.035);g.add(outline);
+  const outline=new THREE.Mesh(new THREE.TorusGeometry(.13,.012,6,24),ink);
+  outline.position.set(0,-.015,.035);g.add(outline);
   for(const x of [-.05,.05]){
-   const eye=new THREE.Mesh(new THREE.CircleGeometry(.018,12),ink);eye.position.set(x,.015,.052);g.add(eye);
+   const eye=new THREE.Mesh(new THREE.CircleGeometry(.018,12),ink);
+   eye.position.set(x,.015,.052);g.add(eye);
   }
-  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(-.07,-.08,.05),new THREE.Vector3(-.035,-.105,.05),new THREE.Vector3(0,-.08,.05),new THREE.Vector3(.035,-.105,.05),new THREE.Vector3(.07,-.08,.05)]);
+  const curve=new THREE.CatmullRomCurve3([
+   new THREE.Vector3(-.07,-.08,.05),
+   new THREE.Vector3(-.035,-.105,.05),
+   new THREE.Vector3(0,-.08,.05),
+   new THREE.Vector3(.035,-.105,.05),
+   new THREE.Vector3(.07,-.08,.05)
+  ]);
   g.add(new THREE.Mesh(new THREE.TubeGeometry(curve,20,.009,6,false),ink));
   for(let i=0;i<2;i++)box(g,0x655b50,[0,-.19-i*.035,.03],[.34-i*.05,.012,.01],.004);
  }
