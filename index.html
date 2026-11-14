@@ -57,6 +57,7 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 #bd7e36}
   <div class="speech-preview">덕형과 한길의 완벽한 팀워크!</div>
   <div class="intro">나는 최고의<br>소매치기!</div>
   <div class="intro-sub">쥐도 새도 모르게 지갑만 쏙!<br>여유로운 행인의 주머니를 털어라!</div>
+
   <div class="item-preview">
    <div class="preview-card">
     <svg viewBox="0 0 60 48"><rect x="7" y="10" width="46" height="29" rx="6" fill="#80513b"/><rect x="10" y="13" width="40" height="22" rx="4" fill="#a77955"/><circle cx="44" cy="24" r="3" fill="#e6c47b"/></svg>
@@ -107,8 +108,8 @@ scene.background=new THREE.Color(0x9bd6f4);
 scene.fog=new THREE.Fog(0x9bd6f4,30,70);
 
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,150);
-// 화면을 아주 조금만 뒤로 빼서 양손이 들어오게 조정
-camera.position.set(0,5.25,10.0);
+// 이전보다 살짝 뒤로 이동
+camera.position.set(0,5.25,10.7);
 camera.lookAt(0,4.7,0);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -217,7 +218,7 @@ for(const side of [-1,1]){
  ball(body,0xe8b18f,[side*.65,-.42,.02],[.22,.22,.22]);
 }
 
-// 멜빵 앞면, 어깨 연결, 뒷면
+// 멜빵
 for(const side of [-1,1]){
  box(body,0x795338,[side*.31,.04,.345],[.13,1.24,.07],.025);
  box(body,0x98704b,[side*.31,.58,.39],[.17,.12,.035],.02);
@@ -226,7 +227,7 @@ for(const side of [-1,1]){
  box(body,0x98704b,[side*.31,.58,-.39],[.17,.12,.035],.02);
 }
 
-// 머리 그룹
+// 머리
 const head=new THREE.Group();
 head.position.set(0,2.0,0);
 victim.add(head);
@@ -237,36 +238,36 @@ const skinColor=0xe8b18f;
 // 뒤통수
 ball(head,hairColor,[0,0,0],[1.08,1.12,.96]);
 
-// 얼굴
-ball(head,skinColor,[0,-.015,.49],[.88,.94,.64]);
+// 얼굴을 머리 쪽으로 더 깊게 겹쳐 분리감 줄이기
+ball(head,skinColor,[0,-.015,.39],[.88,.94,.69]);
 
-// 귀를 얼굴 쪽으로 더 이동시켜 깊게 겹침
+// 귀: 얼굴 양옆에 붙이고 머리와 얼굴 안쪽으로 깊게 겹침
 for(const side of [-1,1]){
- ball(head,skinColor,[side*.69,-.055,.55],[.27,.30,.27]);
- ball(head,0xd69b7f,[side*.69,-.055,.755],[.13,.16,.055]);
- ball(head,skinColor,[side*.69,-.055,.785],[.075,.10,.025]);
+ ball(head,skinColor,[side*.73,-.055,.43],[.25,.29,.28]);
+ ball(head,0xd69b7f,[side*.73,-.055,.635],[.115,.145,.07]);
+ ball(head,skinColor,[side*.73,-.055,.66],[.07,.095,.035]);
 }
 
-// 앞머리: 앞쪽 표면에 붙는 한 덩어리
-// 머리 표면에 파묻히도록 z를 낮추고 얼굴과 겹치게 배치
+// 앞머리: 위에 뜨지 않도록 머리 앞면에 깊게 넣고 아래로 내림
+// 한 덩어리의 넓고 낮은 타원 형태
 const fringe=ball(
  head,
  hairColor,
- [0,.69,.73],
- [1.00,.22,.24]
+ [0,.55,.70],
+ [1.02,.30,.30]
 );
-fringe.rotation.z=-.045;
+fringe.rotation.z=-.035;
 
-// 앞머리 아래쪽의 둥근 끝선도 같은 덩어리에 겹쳐 붙임
-const fringeLower=ball(
+// 앞머리 아랫부분을 얼굴 쪽으로 더 겹쳐 연결
+const fringeEdge=ball(
  head,
  hairColor,
- [0,.60,.79],
- [.91,.12,.19]
+ [0,.43,.79],
+ [.94,.17,.23]
 );
-fringeLower.rotation.z=-.045;
+fringeEdge.rotation.z=-.035;
 
-// 안경
+// 안경: 동그란 렌즈 두 개만, 가운데 연결 부품 제거
 const glasses=new THREE.Group();
 head.add(glasses);
 
@@ -278,19 +279,24 @@ for(const side of [-1,1]){
  ring.position.set(side*.22,.015,1.045);
  glasses.add(ring);
 }
-box(glasses,0x242424,[0,.015,1.055],[.12,.035,.035],.01);
 
 for(const side of [-1,1]){
  const arm=box(glasses,0x242424,[side*.43,.015,.91],[.28,.035,.035],.015);
  arm.rotation.y=side*.35;
 }
 
-// 화난 눈썹
+// 눈썹을 조금 아래로 내림
 const brows=new THREE.Group();
 head.add(brows);
 
 for(const side of [-1,1]){
- const b=box(brows,0x241d19,[side*.22,.30,1.04],[.23,.05,.035],.015);
+ const b=box(
+  brows,
+  0x241d19,
+  [side*.22,.245,1.04],
+  [.23,.05,.035],
+  .015
+ );
  b.rotation.z=side<0?-.3:.3;
 }
 brows.visible=false;
@@ -304,7 +310,6 @@ function createArm(color){
  const hand=new THREE.Group();
  group.add(hand);
 
- // 손 크기를 조금 키움
  ball(hand,0xf0c6a5,[0,0,0],[1.48,1.32,1.25]);
 
  return {group,sleeve,hand};
@@ -316,9 +321,9 @@ const rightArm=createArm(0x81998b);
 const leftShoulder=new THREE.Vector3(-2.55,4.0,2.8);
 const rightShoulder=new THREE.Vector3(2.55,4.0,2.8);
 
-// 양손 기본 위치를 위로 이동
-const leftBase=new THREE.Vector3(-.65,2.45,2.55);
-const rightBase=new THREE.Vector3(.65,2.45,2.55);
+// 양손을 화면 안으로 더 올림
+const leftBase=new THREE.Vector3(-.65,2.65,2.55);
+const rightBase=new THREE.Vector3(.65,2.65,2.55);
 
 let leftWrist=leftBase.clone();
 let rightWrist=rightBase.clone();
@@ -542,9 +547,7 @@ renderer.domElement.addEventListener('pointermove',e=>{
  if(!dragging)return;
  dragY=e.clientY-startY;
 
- // 짧은 드래그에도 크게 움직임
  const v=THREE.MathUtils.clamp(dragY/13.75,-1,1);
-
  rightTarget.set(
   rightBase.x,
   rightBase.y-v*1.8,
@@ -617,7 +620,9 @@ function animate(now){
   if(active&&item){
    itemTimer+=dt;
    item.rotation.y=Math.sin(now*.002)*.04;
-   if(itemTimer>=1.6)finish();
+
+   // 아이템 제한시간 단축
+   if(itemTimer>=1.3)finish();
   }
  }
 
