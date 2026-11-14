@@ -107,8 +107,8 @@ scene.background=new THREE.Color(0x9bd6f4);
 scene.fog=new THREE.Fog(0x9bd6f4,30,70);
 
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,150);
-camera.position.set(0,5.0,12.1);
-camera.lookAt(0,3.9,0);
+camera.position.set(0,4.8,11.8);
+camera.lookAt(0,3.65,0);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
@@ -286,28 +286,53 @@ const body=new THREE.Group();
 body.position.set(0,.9,0);
 victim.add(body);
 
+// 상의
 box(body,0xf0eee5,[0,0,0],[1.25,1.55,.65],.16);
 capsule(body,0xe8b18f,[0,.88,0],.18,.2);
 
+// 팔
 for(const side of [-1,1]){
  box(body,0xf0eee5,[side*.65,.13,0],[.38,1.05,.58],.18);
  ball(body,0xe8b18f,[side*.65,-.42,.02],[.22,.22,.22]);
 }
 
-// 갈색 바지
-box(body,0x795338,[0,-.83,0],[1.22,.42,.64],.09);
+// 긴 갈색 바지
+// 허리와 골반을 하나로 연결
+box(body,0x795338,[0,-.83,0],[1.22,.48,.66],.09);
 
+// 허벅지부터 발목까지 이어지는 긴 바지 두 다리
 for(const side of [-1,1]){
- box(body,0x70452e,[side*.32,-1.35,0],[.53,.82,.59],.09);
- box(body,0x593723,[side*.32,-1.76,.015],[.55,.09,.61],.035);
+ box(
+  body,
+  0x70452e,
+  [side*.32,-1.63,0],
+  [.54,1.55,.62],
+  .11
+ );
+
+ // 바짓단
+ box(
+  body,
+  0x593723,
+  [side*.32,-2.43,.015],
+  [.56,.12,.64],
+  .035
+ );
+
+ // 발목 아래 신발
+ box(
+  body,
+  0x493326,
+  [side*.32,-2.57,.12],
+  [.58,.22,.82],
+  .08
+ );
 }
 
-// 멜빵 앞면과 뒷면
+// 멜빵은 앞면에만 배치
 for(const side of [-1,1]){
  box(body,0x795338,[side*.31,.04,.345],[.13,1.24,.07],.025);
  box(body,0x98704b,[side*.31,.58,.39],[.17,.12,.035],.02);
- box(body,0x795338,[side*.31,.04,-.345],[.13,1.24,.07],.025);
- box(body,0x98704b,[side*.31,.58,-.39],[.17,.12,.035],.02);
 }
 
 // 머리
@@ -318,11 +343,11 @@ victim.add(head);
 const hairColor=0x211b1b;
 const skinColor=0xe8b18f;
 
-// 얼굴을 먼저 배치
+// 얼굴
 ball(head,skinColor,[0,-.015,.48],[.88,.94,.67]);
 
-// 머리카락을 뒤통수와 옆머리 위주로 구성
-// 전체 구체 대신 앞쪽 아래 영역을 제거한 크롭 메시
+// 뒤통수와 정수리에 붙는 머리카락
+// 얼굴 앞쪽 아래 부분은 제거한 형태
 function createCroppedHair(){
  const geometry=new THREE.SphereGeometry(1,64,48);
  const pos=geometry.attributes.position;
@@ -337,8 +362,8 @@ function createCroppedHair(){
    .add(points[0]).add(points[1]).add(points[2])
    .multiplyScalar(1/3);
 
-  // 얼굴 앞쪽의 아래 영역을 잘라내어 얼굴이 드러나게 함
-  const removeFrontLower=center.z>.12 && center.y<.72;
+  // 이마 쪽 아래를 비워 얼굴과 앞머리가 자연스럽게 이어지게 함
+  const removeFrontLower=center.z>.18 && center.y<.78;
   if(!removeFrontLower)kept.push(...ids);
  }
 
@@ -355,7 +380,7 @@ function createCroppedHair(){
  );
 
  hair.position.set(0,.015,-.055);
- hair.scale.set(1.08,1.12,.88);
+ hair.scale.set(1.04,1.08,.86);
  hair.castShadow=true;
  hair.receiveShadow=true;
  return hair;
@@ -363,46 +388,51 @@ function createCroppedHair(){
 
 head.add(createCroppedHair());
 
-// 옆머리: 얼굴 가장자리와 뒤통수에 겹치도록 연결
-for(const side of [-1,1]){
- const sideHair=ball(
-  head,
-  hairColor,
-  [side*.77,-.02,.12],
-  [.31,.83,.58]
- );
- sideHair.rotation.z=side*.10;
-}
-
-// 귀: 얼굴 바깥에 튀어나오지 않도록 안쪽으로 묻어 배치
+// 귀는 머리카락 바깥쪽에 얼굴과 겹쳐 고정
 for(const side of [-1,1]){
  ball(
   head,
   skinColor,
-  [side*.775,-.07,.40],
-  [.235,.27,.235]
+  [side*.79,-.07,.46],
+  [.235,.27,.24]
+ );
+ ball(
+  head,
+  0xd69b7f,
+  [side*.80,-.075,.665],
+  [.11,.14,.035]
  );
 }
 
-// 앞머리: 이마 곡면을 따라 붙는 넓은 한 덩어리
-// 머리카락의 밑부분이 얼굴 안으로 들어가도록 깊이를 겹침
+// 비대칭 부채꼴 앞머리
+// 중앙으로 뾰족하게 모이는 원숭이 가르마를 없애고
+// 왼쪽에서 시작해 오른쪽으로 자연스럽게 쓸리는 곡선
 const bangShape=new THREE.Shape();
-bangShape.moveTo(-.79,.79);
-bangShape.bezierCurveTo(-.55,.96,.45,.96,.79,.79);
-bangShape.bezierCurveTo(.78,.58,.73,.43,.62,.35);
-bangShape.bezierCurveTo(.43,.43,.25,.40,0,.20);
-bangShape.bezierCurveTo(-.22,.41,-.43,.44,-.63,.35);
-bangShape.bezierCurveTo(-.75,.49,-.78,.64,-.79,.79);
+
+bangShape.moveTo(-.78,.78);
+
+// 위쪽 두상 라인
+bangShape.bezierCurveTo(-.52,.96,.38,.97,.78,.78);
+
+// 오른쪽 옆으로 부드럽게 내려오는 끝
+bangShape.bezierCurveTo(.75,.61,.69,.48,.58,.42);
+
+// 밑단은 뾰족한 한 점이 아니라 완만한 부채꼴
+bangShape.bezierCurveTo(.36,.46,.18,.48,-.02,.43);
+bangShape.bezierCurveTo(-.25,.38,-.47,.38,-.64,.48);
+
+// 왼쪽 끝을 위로 연결
+bangShape.bezierCurveTo(-.75,.55,-.78,.67,-.78,.78);
 bangShape.closePath();
 
 const bangGeometry=new THREE.ExtrudeGeometry(bangShape,{
- depth:.12,
+ depth:.10,
  bevelEnabled:true,
  bevelSegments:3,
  steps:1,
- bevelSize:.025,
- bevelThickness:.035,
- curveSegments:24
+ bevelSize:.018,
+ bevelThickness:.025,
+ curveSegments:32
 });
 
 const bang=new THREE.Mesh(
@@ -414,13 +444,13 @@ const bang=new THREE.Mesh(
  })
 );
 
-// 앞머리를 얼굴 표면 안쪽부터 시작해 겹치도록 배치
-bang.position.set(0,.015,1.005);
+// 얼굴 표면에 겹쳐 떠 보이지 않게 배치
+bang.position.set(0,.015,.995);
 bang.castShadow=true;
 bang.receiveShadow=true;
 head.add(bang);
 
-// 안경: 렌즈 두 개만 남김
+// 안경: 렌즈 두 개만
 const glasses=new THREE.Group();
 head.add(glasses);
 
@@ -432,8 +462,6 @@ for(const side of [-1,1]){
  ring.position.set(side*.22,.015,1.045);
  glasses.add(ring);
 }
-
-// 안경 다리와 코받침은 제거
 
 // 화난 눈썹
 const brows=new THREE.Group();
