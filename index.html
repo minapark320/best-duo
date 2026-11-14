@@ -129,7 +129,9 @@ scene.background=new THREE.Color(0x9bd6f4);
 scene.fog=new THREE.Fog(0x9bd6f4,30,70);
 
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,150);
-camera.position.set(0,5.5,13.8);
+
+// 자경이를 기존보다 약 1.5배 가까이 보이도록 카메라 이동
+camera.position.set(0,5.23,9.2);
 camera.lookAt(0,4.7,0);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -252,13 +254,11 @@ victim.add(head);
 // 검은 머리 전체
 ball(head,0x211b1b,[0,0,0],[1.08,1.12,.96]);
 
-// 얼굴을 검은 머리 앞쪽에 충분히 겹쳐 배치
+// 얼굴
 ball(head,0xe8b18f,[0,-.015,.49],[.88,.94,.64]);
 
-// 귀: 얼굴 좌우 가장자리에 깊숙하게 겹쳐 연결
-// 귀 바깥 실루엣이 얼굴과 머리에 붙어 보이도록 위치 조정
+// 귀: 얼굴 양옆과 머리에 깊게 겹쳐 붙임
 for(const side of [-1,1]){
- // 귀 바깥쪽 살
  ball(
   head,
   0xe8b18f,
@@ -266,7 +266,6 @@ for(const side of [-1,1]){
   [.285,.30,.245]
  );
 
- // 귀 안쪽의 얕은 음영
  ball(
   head,
   0xd99b7d,
@@ -274,7 +273,6 @@ for(const side of [-1,1]){
   [.125,.17,.035]
  );
 
- // 귀 안쪽 밝은 부분으로 과한 구멍처럼 보이지 않게 처리
  ball(
   head,
   0xe8b18f,
@@ -283,24 +281,16 @@ for(const side of [-1,1]){
  );
 }
 
-// 앞머리: 넓고 납작한 타원형 두 가닥만 배치
-// 서로 살짝 겹쳐 한 덩어리처럼 보이도록 구성
-const fringe=new THREE.Group();
-head.add(fringe);
-
-const fringeLeft=ball(
- fringe,0x211b1b,
- [-.205,.665,.925],
- [.39,.19,.14]
+// 앞머리: 여러 조각 대신 가로로 긴 한 덩어리
+// 머리카락과 이마에 깊숙이 겹쳐 떠 보이지 않도록 배치
+const fringe=box(
+ head,
+ 0x211b1b,
+ [0,.665,.88],
+ [.96,.19,.22],
+ .085
 );
-fringeLeft.rotation.z=-.10;
-
-const fringeRight=ball(
- fringe,0x211b1b,
- [.205,.665,.925],
- [.39,.19,.14]
-);
-fringeRight.rotation.z=.10;
+fringe.rotation.z=0;
 
 // 안경
 const glasses=new THREE.Group();
@@ -611,8 +601,8 @@ renderer.domElement.addEventListener('pointermove',e=>{
 
  dragY=e.clientY-startY;
 
- // 작은 드래그에도 팔이 크게 반응하도록 감도 상향
- const v=THREE.MathUtils.clamp(dragY/55,-1,1);
+ // 이전 55px에서 27.5px로 변경해 감도를 2배 높임
+ const v=THREE.MathUtils.clamp(dragY/27.5,-1,1);
 
  rightTarget.set(
   rightBase.x,
@@ -626,8 +616,8 @@ window.addEventListener('pointerup',()=>{
 
  dragging=false;
 
- // 손가락을 조금만 움직여도 방향 입력으로 인식
- if(Math.abs(dragY)>7){
+ // 짧은 움직임도 입력으로 인식
+ if(Math.abs(dragY)>4){
   judge(dragY>0?'down':'up');
  }
 
@@ -690,7 +680,6 @@ function animate(now){
    itemTimer+=dt;
    item.rotation.y=Math.sin(now*.002)*.04;
 
-   // 아이템 제한시간 1.6초
    if(itemTimer>=1.6)finish();
   }
  }
