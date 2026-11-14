@@ -107,7 +107,6 @@ scene.background=new THREE.Color(0x9bd6f4);
 scene.fog=new THREE.Fog(0x9bd6f4,30,70);
 
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,150);
-// 너무 멀어지지 않도록 직전보다 살짝 가까운 거리
 camera.position.set(0,4.9,11.5);
 camera.lookAt(0,3.9,0);
 
@@ -155,6 +154,123 @@ function capsule(p,c,pos,r,l,rot=[0,0,0]){
  m.castShadow=true;
  p.add(m);
  return m;
+}
+
+// 효과음 시스템
+let audioContext=null;
+
+function initAudio(){
+ try{
+  if(!audioContext){
+   const AudioCtx=window.AudioContext||window.webkitAudioContext;
+   if(!AudioCtx)return;
+   audioContext=new AudioCtx();
+  }
+  if(audioContext.state==='suspended'){
+   audioContext.resume();
+  }
+ }catch(e){
+  console.warn('오디오를 시작할 수 없습니다.',e);
+ }
+}
+
+function tone(freq,start,duration,type='sine',volume=.15,endFreq=null){
+ if(!audioContext)return;
+
+ const osc=audioContext.createOscillator();
+ const gain=audioContext.createGain();
+
+ osc.type=type;
+ osc.frequency.setValueAtTime(freq,start);
+
+ if(endFreq!==null){
+  osc.frequency.exponentialRampToValueAtTime(
+   Math.max(1,endFreq),
+   start+duration
+  );
+ }
+
+ gain.gain.setValueAtTime(.001,start);
+ gain.gain.exponentialRampToValueAtTime(volume,start+.012);
+ gain.gain.exponentialRampToValueAtTime(.001,start+duration);
+
+ osc.connect(gain);
+ gain.connect(audioContext.destination);
+
+ osc.start(start);
+ osc.stop(start+duration+.02);
+}
+
+function noiseBurst(start,duration,volume=.2,filterFreq=1200){
+ if(!audioContext)return;
+
+ const length=Math.max(1,Math.floor(audioContext.sampleRate*duration));
+ const buffer=audioContext.createBuffer(1,length,audioContext.sampleRate);
+ const data=buffer.getChannelData(0);
+
+ for(let i=0;i<length;i++){
+  data[i]=(Math.random()*2-1)*(1-i/length);
+ }
+
+ const source=audioContext.createBufferSource();
+ const filter=audioContext.createBiquadFilter();
+ const gain=audioContext.createGain();
+
+ source.buffer=buffer;
+ filter.type='lowpass';
+ filter.frequency.setValueAtTime(filterFreq,start);
+
+ gain.gain.setValueAtTime(volume,start);
+ gain.gain.exponentialRampToValueAtTime(.001,start+duration);
+
+ source.connect(filter);
+ filter.connect(gain);
+ gain.connect(audioContext.destination);
+
+ source.start(start);
+ source.stop(start+duration);
+}
+
+function playSfx(type){
+ if(!audioContext)return;
+
+ const now=audioContext.currentTime;
+
+ if(type==='spawn'){
+  tone(520,now,.09,'sine',.055,680);
+  return;
+ }
+
+ if(type==='catch'){
+  // 받기: 맑은 동전 획득음
+  tone(880,now,.16,'sine',.18,1180);
+  tone(1320,now+.09,.22,'sine',.13,1580);
+  tone(1760,now+.17,.18,'sine',.07,1900);
+  return;
+ }
+
+ if(type==='deflect'){
+  // 쳐내기: 낮은 타격음 + 짧은 바람 소리
+  tone(155,now,.19,'triangle',.3,75);
+  tone(95,now+.015,.16,'sine',.2,55);
+  noiseBurst(now,.18,.2,1500);
+  tone(430,now+.055,.1,'triangle',.08,220);
+  return;
+ }
+
+ if(type==='wrong'){
+  // 잘못된 조작: 짧고 둔탁한 실패음
+  tone(180,now,.3,'sawtooth',.2,75);
+  tone(110,now+.04,.25,'triangle',.16,55);
+  return;
+ }
+
+ if(type==='gameover'){
+  // 게임오버: 묵직한 하강 경고음
+  tone(220,now,.38,'triangle',.2,130);
+  tone(155,now+.22,.48,'sawtooth',.16,65);
+  tone(75,now+.35,.55,'sine',.2,42);
+ }
 }
 
 // 배경
@@ -209,23 +325,19 @@ const body=new THREE.Group();
 body.position.set(0,.9,0);
 victim.add(body);
 
-// 상의
 box(body,0xf0eee5,[0,0,0],[1.25,1.55,.65],.16);
 capsule(body,0xe8b18f,[0,.88,0],.18,.2);
 
-// 어깨와 팔
 for(const side of [-1,1]){
  box(body,0xf0eee5,[side*.65,.13,0],[.38,1.05,.58],.18);
  ball(body,0xe8b18f,[side*.65,-.42,.02],[.22,.22,.22]);
 }
 
-// 갈색 바지 허리 부분
+// 갈색 바지
 box(body,0x795338,[0,-.83,0],[1.22,.42,.64],.09);
 
-// 바지 양쪽 다리
 for(const side of [-1,1]){
  box(body,0x70452e,[side*.32,-1.35,0],[.53,.82,.59],.09);
- // 바짓단
  box(body,0x593723,[side*.32,-1.76,.015],[.55,.09,.61],.035);
 }
 
@@ -245,21 +357,17 @@ victim.add(head);
 const hairColor=0x211b1b;
 const skinColor=0xe8b18f;
 
-// 뒤통수 머리
 ball(head,hairColor,[0,0,0],[1.08,1.12,.96]);
-
-// 얼굴
 ball(head,skinColor,[0,-.015,.43],[.88,.94,.67]);
 
-// 귀: 얼굴 옆과 머리 안쪽에 겹쳐 고정
+// 귀
 for(const side of [-1,1]){
  ball(head,skinColor,[side*.72,-.055,.43],[.24,.28,.27]);
  ball(head,0xd69b7f,[side*.72,-.055,.625],[.105,.13,.055]);
  ball(head,skinColor,[side*.72,-.055,.645],[.065,.085,.025]);
 }
 
-// 앞머리: 단일 곡선형 면
-// 공 여러 개를 붙이지 않고 하나의 입체 면으로 제작
+// 앞머리
 const bangShape=new THREE.Shape();
 bangShape.moveTo(-.78,.84);
 bangShape.bezierCurveTo(-.48,1.02,.40,1.02,.78,.84);
@@ -277,12 +385,12 @@ const bangGeometry=new THREE.ExtrudeGeometry(bangShape,{
  bevelSize:.025,
  bevelThickness:.025
 });
+
 const bang=new THREE.Mesh(
  bangGeometry,
  new THREE.MeshStandardMaterial({color:hairColor,roughness:.9})
 );
-// 얼굴 곡면에 겹치도록 앞쪽에 낮게 배치
-bang.position.set(0,0.02,.91);
+bang.position.set(0,.02,.91);
 bang.castShadow=true;
 bang.receiveShadow=true;
 head.add(bang);
@@ -300,7 +408,6 @@ for(const side of [-1,1]){
  glasses.add(ring);
 }
 
-// 안경 다리
 for(const side of [-1,1]){
  const arm=box(glasses,0x242424,[side*.43,.015,.91],[.28,.035,.035],.015);
  arm.rotation.y=side*.35;
@@ -475,22 +582,6 @@ function nextName(){
  return n;
 }
 
-function sound(freq,duration){
- try{
-  const ctx=sound.ctx||(sound.ctx=new AudioContext());
-  if(ctx.state==='suspended')ctx.resume();
-  const osc=ctx.createOscillator(),gain=ctx.createGain();
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.type='triangle';
-  osc.frequency.value=freq;
-  gain.gain.setValueAtTime(.07,ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);
-  osc.start();
-  osc.stop(ctx.currentTime+duration);
- }catch(e){}
-}
-
 function showPhrase(){
  phraseIndex++;
  $('speech').textContent=phraseIndex%2===1?'척하면 척!':'딱하면 딱!';
@@ -502,7 +593,6 @@ function spawn(){
  item=makeItem(name);
  holder.add(item);
 
- // 양손 위에 놓이는 위치
  holder.position.set(0,2.75,3.65);
  holder.scale.setScalar(2.5);
  itemTimer=0;
@@ -510,7 +600,7 @@ function spawn(){
  leftProgress=0;
  leftMoving=true;
  showPhrase();
- sound(520,.08);
+ playSfx('spawn');
 }
 
 function clearItem(){
@@ -527,7 +617,7 @@ function finish(){
  turning=true;
  turnProgress=0;
  $('result').textContent=`훔친 물건 ${score}개`;
- sound(110,.4);
+ playSfx('gameover');
 }
 
 function judge(direction){
@@ -537,6 +627,7 @@ function judge(direction){
  const correct=(shouldCatch&&direction==='down')||(!shouldCatch&&direction==='up');
 
  if(!correct){
+  playSfx('wrong');
   finish();
   return;
  }
@@ -544,9 +635,9 @@ function judge(direction){
  if(shouldCatch){
   score++;
   $('score').textContent=score;
-  sound(780,.1);
+  playSfx('catch');
  }else{
-  sound(250,.1);
+  playSfx('deflect');
  }
 
  combo++;
@@ -588,6 +679,8 @@ window.addEventListener('pointerup',()=>{
 });
 
 function startGame(){
+ initAudio();
+
  active=true;
  time=60;
  score=0;
