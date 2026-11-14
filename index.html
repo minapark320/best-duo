@@ -247,39 +247,35 @@ for(const side of [-1,1]){
 
 // ------------------------------------------------
 // 자경이 머리
-// 검은색 구형 머리 + 앞쪽 얼굴 + 양옆 귀
+// 검은 머리 안쪽에 얼굴을 겹쳐 붙이는 구조
 // ------------------------------------------------
 const head=new THREE.Group();
 head.position.set(0,2.0,0);
 victim.add(head);
 
-// 1. 검은색 머리 전체
-const hairBase=ball(
- head,
- 0x211b1b,
- [0,0,0],
- [1.08,1.12,.96]
-);
+// 검은색 둥근 머리
+ball(head,0x211b1b,[0,0,0],[1.08,1.12,.96]);
 
-// 2. 얼굴을 검은 머리 앞면에 겹쳐 붙임
-const face=ball(
+// 얼굴: 머리 앞면에 충분히 겹치도록 배치
+// 시작 시 victim이 180도 돌아 있으므로 얼굴은 -Z 방향
+ball(
  head,
  0xe8b18f,
- [0,-.035,.69],
- [0.91,.96,.43]
+ [0,-.015,-.57],
+ [.91,.96,.52]
 );
 
-// 3. 귀는 얼굴 양옆에 붙임
+// 귀: 얼굴 양옆, 머리와 얼굴 사이에 겹쳐 배치
 for(const side of [-1,1]){
- const ear=ball(
+ ball(
   head,
   0xe8b18f,
-  [side*.91,-.04,.48],
-  [.25,.31,.19]
+  [side*.88,-.035,-.43],
+  [.24,.30,.20]
  );
 }
 
-// 4. 안경
+// 안경
 const glasses=new THREE.Group();
 head.add(glasses);
 
@@ -288,26 +284,26 @@ for(const side of [-1,1]){
   new THREE.TorusGeometry(.19,.027,8,28),
   mat(0x242424)
  );
- ring.position.set(side*.22,.015,1.075);
+ ring.position.set(side*.22,.015,-1.015);
  glasses.add(ring);
 }
 
 // 안경 가운데 연결부
-box(glasses,0x242424,[0,.015,1.08],[.12,.035,.035],.01);
+box(glasses,0x242424,[0,.015,-1.035],[.12,.035,.035],.01);
 
 // 안경 다리
 for(const side of [-1,1]){
  const arm=box(
   glasses,
   0x242424,
-  [side*.43,.015,.91],
+  [side*.43,.015,-.88],
   [.28,.035,.035],
   .015
  );
  arm.rotation.y=side*.35;
 }
 
-// 5. 화난 눈썹
+// 화난 눈썹
 const brows=new THREE.Group();
 head.add(brows);
 
@@ -315,7 +311,7 @@ for(const side of [-1,1]){
  const b=box(
   brows,
   0x241d19,
-  [side*.22,.29,1.065],
+  [side*.22,.29,-1.005],
   [.23,.05,.035],
   .015
  );
@@ -428,7 +424,6 @@ function makeItem(n){
   capsule(g,0x79532f,[.16,.12,0],.045,.35,[0,0,.8]);
 
  }else if(n==='옥수수'){
-  // 길쭉한 노란 알약형 몸통
   const corn=new THREE.Mesh(
    new THREE.CapsuleGeometry(.22,.72,12,32),
    mat(0xf4c52e)
@@ -438,7 +433,6 @@ function makeItem(n){
   corn.receiveShadow=true;
   g.add(corn);
 
-  // 한쪽 끝의 짧은 초록색 부분
   const greenTip=new THREE.Mesh(
    new THREE.CapsuleGeometry(.17,.08,8,20),
    mat(0x4f8745)
@@ -615,7 +609,7 @@ function startGame(){
  leftProgress=0;
  leftMoving=false;
 
- // 시작할 때는 자경이가 등을 보임
+ // 자경이의 뒤통수가 먼저 보이도록 설정
  victim.rotation.y=Math.PI;
  brows.visible=false;
 
